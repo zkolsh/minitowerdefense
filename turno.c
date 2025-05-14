@@ -1,13 +1,11 @@
 #include "turno.h"
 
-static void mostrar_enemigos(Coordenada *enemigos, int cant_enemigos) {
-    for (int i = 0; i < cant_enemigos ; i++)
-        printf("%d - %d\n", enemigos[i].x, enemigos[i].y);
-}
-
-static void desplazar_enemigos(Coordenada *enemigos, int cant_enemigos) {
+static void desplazar_enemigos(Enemigos *enemigos) {
+    Coordenada *posiciones = enemigos->posiciones;
+    int cant_enemigos = enemigos->cantidad;
+    
     for (int i = cant_enemigos - 1; i > 0; i--)
-        enemigos[i] = enemigos[i - 1];
+        posiciones[i] = posiciones[i - 1];
 }
 
 static int camino(Mapa *mapa, Coordenada *lider, int limite, int dx, int dy) {
@@ -26,48 +24,52 @@ static int camino_abajo(Mapa *mapa, Coordenada *lider, int alto) {
     return camino(mapa, lider, alto, 0, 1);
 }
     
-static int decidir_nueva_posicion(Coordenada *enemigos, Mapa *mapa) {
-    Coordenada *lider = &enemigos[0];
+static void decidir_nueva_posicion(Enemigos *enemigos, Mapa *mapa) {
+    Coordenada *lider = enemigos->posiciones; // primer enemigo
+    int ancho = mapa->ancho;
+    int alto = mapa->alto;
 
-    if (lider->x == -1 && lider->y == -1)
-        return 0;
-
-    int ancho = mapa->ancho, alto = mapa->alto;
-    if (lider->x == ancho - 1 && lider->y == alto - 1) {
-        lider->x = lider->y = -1;
-        return 1;
-    }
+    // if (lider->x == -1 && lider->y == -1 && enemigos->activos[0])
+    //     enemigos->vida[0] = VIDA_INICIAL;
 
     int direccion = rand() % 2; // 0 = abajo, 1 = derecha
     int hay_abajo = camino_abajo(mapa, lider, alto);
     int hay_derecha = camino_derecha(mapa, lider, ancho);
 
-    if (!hay_abajo || (hay_derecha && direccion)) { // Derecha
-        // printf("%s\n", !hay_abajo ? "Derecha (forzada)" : "Derecha");
+    if ((lider->x >= alto && lider->y >= ancho && direccion) || // fuera del mapa
+        !hay_abajo || (hay_derecha && direccion)) { // derecha forzada o derecha elegida
         lider->x++;
-        return 0;
+        return;
     }
     
     // Abajo
-    // printf("%s\n", !hay_derecha ? "Abajo (forzada)" : "Abajo");
     lider->y++;
-    return 0;
 }
 
-static void actualizar_activos(Nivel *nivel, Mapa *mapa) {
-    int escapes = 0;
+static int actualizar_activos(Nivel *nivel, Mapa *mapa) {
+    int escape = 0;
+    int mia = 0;
     
-    for (int i = 0; i < nivel->enemigos->cantidad ; i++)
+    for (int i = 0; i < nivel->enemigos->cantidad ; i++) {
+        if (nivel->enemigos->vida[i] == 0) {
+            nivel->enemigos->activos[i] = 0;
+            mia++;
+        }
+
         if (nivel->enemigos->posiciones[i].x >= mapa->ancho ||
             nivel->enemigos->posiciones[i].y >= mapa->alto) {
             nivel->enemigos->activos[i] = 0;
-            escapes++;
+            escape++;
         }
+    }
 
-    nivel->enemigos->cantidad_activos = nivel->enemigos->cantidad - escapes;
+    printf("Escape: %d  - mia: %d\n", escape, mia);
+    nivel->enemigos->cantidad_activos = nivel->enemigos->cantidad - (escape + mia);
+    return escape;
 }
 
 static int enemigo_en_mapa(Coordenada enemigo, int ancho, int alto) {
+    // printf("%d %d %d %d %d %d\n", enemigo.x, enemigo.y, enemigo.x >= 0, enemigo.x < ancho, enemigo.y >= 0, enemigo.y < alto);
     return enemigo.x >= 0 && enemigo.x < ancho &&
            enemigo.y >= 0 && enemigo.y < alto;
 }
@@ -78,39 +80,12 @@ static void actualizar_mapa(Nivel *nivel, Mapa *mapa) {
         mapa->casillas[nivel->camino->posiciones[i].y][nivel->camino->posiciones[i].x] = CAMINO;
 
     // Actualizar enemigos
-    for (int i = 0; i < nivel->enemigos->cantidad ; i++)
-        if(enemigo_en_mapa(nivel->enemigos->posiciones[i], mapa->ancho, mapa->alto))
+    for (int i = 0; i < nivel->enemigos->cantidad ; i++) {
+        if(enemigo_en_mapa(nivel->enemigos->posiciones[i], mapa->ancho, mapa->alto) && nivel->enemigos->activos[i]) {
+            // printf("Colocando enemigo %d %d que esta activo: %d\n", nivel->enemigos->posiciones[i].x, nivel->enemigos->posiciones[i].y, nivel->enemigos->activos[i]);
             mapa->casillas[nivel->enemigos->posiciones[i].y][nivel->enemigos->posiciones[i].x] = ENEMIGO;
-}
-
-static int area_ataque(int distancia) {
-    return 4 * distancia * (distancia + 1);
-    // int cant_celdas = 0;
-    // for (int i = 1; i <= distancia; i++)
-    //     cant_celdas += 8 * i;
-    
-    // return cant_celdas;
-}
-
-static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones_ataque, int ancho, int alto) {
-    int cant_posiciones_validas = 0;
-
-    for (int dx = -DISTANCIA_ATAQUE; dx <= DISTANCIA_ATAQUE; dx++) {
-        for (int dy = -DISTANCIA_ATAQUE; dy <= DISTANCIA_ATAQUE; dy++) {
-            int nuevo_x = posicion_torre.x + dx;
-            int nuevo_y = posicion_torre.y + dy;
-            // printf("Calcular posiciones: %d - %d - %d  - %d\n", dx, dy, nuevo_x, nuevo_y);
-
-            if (dx == 0 && dy == 0) continue;
-            if (nuevo_x < 0 || nuevo_y < 0) continue;
-            if (nuevo_x >= ancho || nuevo_y >= alto) continue;
-
-            posiciones_ataque[cant_posiciones_validas].x = nuevo_x;
-            posiciones_ataque[cant_posiciones_validas++].y = nuevo_y;
         }
     }
-
-    return cant_posiciones_validas;
 }
 
 static int es_enemigo(TipoCasilla t) {
@@ -118,13 +93,15 @@ static int es_enemigo(TipoCasilla t) {
 }
 
 static int buscarEnemigo(Coordenada *posiciones_enemigos, int cant_enemigos, Coordenada ataque) {
+    // printf("Buscando enemigo en %d %d\n", ataque.x, ataque.y);
     int encontrado = 0, posicion = -1;
 
     for (int i = 0; i < cant_enemigos && !encontrado; i++){
-        if(posiciones_enemigos[i].x == ataque.x &&
-           posiciones_enemigos[i].y == ataque.y) {
+        // printf("Enemigo %d en %d %d\n", i, posiciones_enemigos[i].x, posiciones_enemigos[i].y);
+        if(posiciones_enemigos[i].y == ataque.x &&
+           posiciones_enemigos[i].x == ataque.y) {
             encontrado = 1;
-            posicion = i;   
+            posicion = i;
         }
     }
     
@@ -139,34 +116,26 @@ static void disminuir_vidas(Nivel *nivel, Mapa *mapa, Coordenada *posiciones_ata
         enemigo = es_enemigo(mapa->casillas[posiciones_ataque[i].x][posiciones_ataque[i].y]);
         if(!enemigo) continue;
 
+        // printf("Enemigo en posicion: %d %d\n", posiciones_ataque[i].x, posiciones_ataque[i].y);
         nro_enemigo = buscarEnemigo(nivel->enemigos->posiciones, nivel->enemigos->cantidad, posiciones_ataque[i]);
-        nivel->enemigos->vida[nro_enemigo]--;
-        if(nivel->enemigos->vida[nro_enemigo] == 0) {
-            nivel->enemigos->cantidad_activos--;
-            nivel->enemigos->activos[nro_enemigo] = 0;
-        }
+        // printf("Enemigo numero: %d\n", nro_enemigo);
+
+        if (nivel->enemigos->vida[nro_enemigo])
+            nivel->enemigos->vida[nro_enemigo]--;
     }
 }
 
-int simular_turno(Mapa *mapa, Nivel *nivel) {
+int simular_turno(Mapa *mapa, Nivel *nivel, Coordenada posiciones_ataque[], int ataques_efectivos) {
     // atacan las torres
-    int nro_ataques = area_ataque(DISTANCIA_ATAQUE);
-    Coordenada posiciones_ataque[nro_ataques];
-    printf("Ataques %d\n", nro_ataques);
-
-    for (int i = 0; i < mapa->cant_torres; i++) {
-        int ataques_efectivos = calcular_posiciones(mapa->torres[i], posiciones_ataque, mapa->ancho, mapa->alto);
-        disminuir_vidas(nivel, mapa, posiciones_ataque, ataques_efectivos);
-    }
+    disminuir_vidas(nivel, mapa, posiciones_ataque, ataques_efectivos);
+    int hubo_escape = actualizar_activos(nivel, mapa);
     
     // avanza el enemigo a paso redoblado
-    desplazar_enemigos(nivel->enemigos->posiciones, nivel->enemigos->cantidad);
-    int escapes = decidir_nueva_posicion(nivel->enemigos->posiciones, mapa);
-    actualizar_activos(nivel, mapa);
-    actualizar_mapa(nivel, mapa); // TODO mostramos solo los activos?
+    desplazar_enemigos(nivel->enemigos);
+    decidir_nueva_posicion(nivel->enemigos, mapa);
+    actualizar_mapa(nivel, mapa);
 
-    // TODO Actualizar escapes
-    return escapes;
+    return hubo_escape;
 }
 
 void inicializar_turno(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
@@ -176,6 +145,5 @@ void inicializar_turno(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
     nivel->enemigos->posiciones[0].x = 0;
     nivel->enemigos->posiciones[0].y = 0;
 
-    actualizar_activos(nivel, mapa);
     actualizar_mapa(nivel, mapa);
 }

@@ -3,28 +3,34 @@
 #include <time.h>
 #include <stdlib.h>
 
-static int posiciones_validas(Coordenada *validas, TipoCasilla **casillas, int ancho, int alto) {
-    int indice = 0;
+static int posiciones_validas(Coordenada *validas, TipoCasilla **casillas, int alto, int ancho) {
+    int cant_posiciones_validas = 0;
     
     for (int i = 0; i < alto; i++) {
         for (int j = 0; j < ancho; j++) {
             if (casillas[i][j] == VACIO) {
-                validas[indice].x = i;
-                validas[indice++].y = j;
+                // printf("Posicion valida para torre: %d %d\n", i, j);
+                validas[cant_posiciones_validas].x = i;
+                validas[cant_posiciones_validas++].y = j;
             }
         }
     }
 
-    return indice;
+    return cant_posiciones_validas;
 }
 
-static void colocar_torre(Mapa *mapa, int x, int y) {
+static void colocar_torre(Mapa *mapa, int x, int y, int nro_torre) {
+    // actualizar torre
+    mapa->torres[nro_torre].x = x;
+    mapa->torres[nro_torre].y = y;
+
+    // actualizar mapa
     mapa->casillas[x][y] = TORRE;
 }
 
-static int determinar_posicion_torre(int *casillas_ocupadas, int cant_validas) {
+static int determinar_posicion_torre(int *casilla_elegida, int cant_validas) {
     int nueva_posicion = rand() % cant_validas;
-    while(casillas_ocupadas[nueva_posicion])
+    while(casilla_elegida[nueva_posicion])
         nueva_posicion = rand() % cant_validas;
 
     return nueva_posicion;
@@ -32,16 +38,22 @@ static int determinar_posicion_torre(int *casillas_ocupadas, int cant_validas) {
 
 
 void colocacion_basica(Nivel* nivel, Mapa* mapa) {
-    const int tamano_mapa = mapa->ancho * mapa->alto;
-    Coordenada posiciones_validas_torre[tamano_mapa];
-    int casillas_ocupadas[tamano_mapa];
-    for(int i= 0; i < tamano_mapa; casillas_ocupadas[i++] = 0);
+    int cantidad_casillas = mapa->alto * mapa->ancho;
+    Coordenada posiciones_validas_torre[cantidad_casillas];
+    int casilla_elegida[cantidad_casillas];
+    for(int i = 0; i < cantidad_casillas; casilla_elegida[i++] = 0);
 
-    int cant_validas = posiciones_validas(posiciones_validas_torre, mapa->casillas, mapa->ancho, mapa->alto);
- 
+    int cant_validas = posiciones_validas(posiciones_validas_torre, mapa->casillas, mapa->alto, mapa->ancho);
+    // printf("Posiciones validas: %d\n", cant_validas);
+    // for(int i = 0; i < cant_validas; i++)
+    //     printf("%d%d\n", posiciones_validas_torre[i].x, posiciones_validas_torre[i].y);
+
     for (int colocadas = 0; colocadas < mapa->cant_torres; colocadas++) {
-        int nueva_torre = determinar_posicion_torre(casillas_ocupadas, cant_validas);
-        colocar_torre(mapa, posiciones_validas_torre[nueva_torre].x, posiciones_validas_torre[nueva_torre].y);
+        int nueva_torre = determinar_posicion_torre(casilla_elegida, cant_validas);
+        casilla_elegida[nueva_torre] = 1;
+        int nueva_torre_x = posiciones_validas_torre[nueva_torre].x;
+        int nueva_torre_y = posiciones_validas_torre[nueva_torre].y;
+        colocar_torre(mapa, nueva_torre_x, nueva_torre_y, colocadas);
     }
 }
 
