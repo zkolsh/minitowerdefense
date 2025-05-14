@@ -1,11 +1,7 @@
 #include "simulador.h"
 #include "estrategia.h"
 
-// static void limpiar_pantalla() {
-//     system(limpiar);
-// }
-
-void inicializar_simulacion(const char* filename, Nivel* nivel, Mapa *mapa) {
+void inicializar_simulacion(const char* filename, Nivel** nivel, Mapa **mapa) {
     FILE* f = fopen(filename, "r");
     if (!f) {
         printf("No se pudo abrir el archivo de nivel");
@@ -15,14 +11,14 @@ void inicializar_simulacion(const char* filename, Nivel* nivel, Mapa *mapa) {
     int ancho, alto, cant_enemigos, cant_torres, largo_camino;
     fscanf(f, "%d %d %d %d %d\n", &ancho, &alto, &cant_enemigos, &cant_torres, &largo_camino);
 
-    *nivel = *inicializar_nivel(largo_camino, cant_enemigos);
-    *mapa = *inicializar_mapa(ancho, alto, cant_torres);
+    *nivel = inicializar_nivel(largo_camino, cant_enemigos);
+    *mapa = inicializar_mapa(ancho, alto, cant_torres);
 
     char fila[MAX_LINEA];
     int n_camino = 0;
     for (int i = 0; i < alto; i++) {
         fscanf(f, "%s", fila);
-        n_camino += procesar_fila(fila, ancho, i, mapa->casillas, nivel->camino->posiciones, n_camino);
+        n_camino += procesar_fila(fila, ancho, i, (*mapa)->casillas, (*nivel)->camino->posiciones, n_camino);
     }
 
     fclose(f);
@@ -35,11 +31,6 @@ void liberar_simulacion(Nivel *nivel, Mapa *mapa) {
 
 static int area_ataque(int distancia) {
     return 4 * distancia * (distancia + 1);
-    // int cant_celdas = 0;
-    // for (int i = 1; i <= distancia; i++)
-    //     cant_celdas += 8 * i;
-    
-    // return cant_celdas;
 }
 
 static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones_ataque, int indice_ataque, int ancho, int alto) {
@@ -76,7 +67,6 @@ void simular_nivel(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
         
     int escape = 0;
     for (int turno = 0; nivel->enemigos->cantidad_activos && !escape; turno++) {
-        // limpiar_pantalla();
         mostrar_mapa(mapa);
 
         escape += simular_turno(mapa, nivel, posiciones_ataque, nro_ataques_efectivos);
@@ -96,6 +86,7 @@ void simular_nivel(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
 int mostrar_menu(Estrategia estrategia_actual, char *ruta_nivel_actual) {
     int opcion = 3;
 
+    limpiar_pantalla();
     printf("\n--- Menú del simulador ---\n");
     printf("1. Seleccionar estrategia (actual: %s)\n", (estrategia_actual == colocacion_basica) ? "Básica" : "Avanzada");
     printf("2. Seleccionar nivel (actual: %s)\n", ruta_nivel_actual);
@@ -113,12 +104,10 @@ int main() {
     Estrategia estrategia_actual = colocacion_basica;
     char ruta_nivel_actual[] = "Levels/nivel01.txt";
 
-    Nivel nivel;
-    Mapa mapa;
-    inicializar_simulacion(ruta_nivel_actual, &nivel, &mapa);
+    Nivel *nivel = NULL;
+    Mapa *mapa = NULL;
 
-    int opcion = 1;
-    int memoria_a_liberar = 1;
+    int opcion = 1, memoria_a_liberar = 0;
     while (opcion != 0) {
         opcion = mostrar_menu(estrategia_actual, ruta_nivel_actual);
 
@@ -130,24 +119,29 @@ int main() {
                 printf("Ingrese la ruta al archivo de nivel: ");
                 scanf("%s", ruta_nivel_actual);
 
-                if(memoria_a_liberar)
-                    liberar_simulacion(&nivel, &mapa);
-                
-                inicializar_simulacion(ruta_nivel_actual, &nivel, &mapa);
-                mostrar_mapa(&mapa);
+                if(memoria_a_liberar) {
+                    liberar_simulacion(nivel, mapa);
+                    memoria_a_liberar = 0;
+                }
+                                
+                printf("Vas a jugar en el sigueinte nivel\n");
+                mostrar_mapa(mapa);
                 break;
             case 3:
-                simular_nivel(&nivel, &mapa, estrategia_actual);
-                // TODO no funciona simular sucesivas veces
+                inicializar_simulacion(ruta_nivel_actual, &nivel, &mapa);
+                simular_nivel(nivel, mapa, estrategia_actual);
+                sleep(3);
+                memoria_a_liberar = 1;
                 break;
             default:
-                // if(memoria_a_liberar)
-                    // ver que culo liberar
-                    // liberar_simulacion(&nivel, &mapa);
+                if(memoria_a_liberar) {
+                    liberar_simulacion(nivel, mapa);
+                    memoria_a_liberar = 0;
+                }
+
                 break;
         }            
     }
 
-    liberar_simulacion(&nivel, &mapa);
     return 0;
 }

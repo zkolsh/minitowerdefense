@@ -12,6 +12,5 @@
 #include <string.h>
 #include <time.h>
 
-#define limpiar "cls"
 
 #endif

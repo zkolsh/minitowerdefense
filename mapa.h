@@ -5,6 +5,8 @@
 #include "stdlib.h"
 #include "stdio.h"
 
+#define limpiar "clear"
+
 typedef enum { CAMINO, TORRE, VACIO, BLOQUEADO, ENEMIGO } TipoCasilla;
 
 typedef struct {
@@ -18,5 +20,7 @@ Mapa *inicializar_mapa(int, int, int);
 void mostrar_mapa(Mapa*);
 
 void liberar_mapa(Mapa *mapa);
+
+void limpiar_pantalla();
 
 #endif

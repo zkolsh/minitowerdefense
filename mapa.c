@@ -1,5 +1,9 @@
 #include "mapa.h"
 
+void limpiar_pantalla() {
+    // system(limpiar);
+}
+
 static char casilla_a_imprimible(TipoCasilla tipo) {
     switch(tipo) {
         case CAMINO:
@@ -30,7 +34,17 @@ Mapa *inicializar_mapa(int ancho, int alto, int cant_torres) {
     return mapa;
 }
 
+void liberar_mapa(Mapa *mapa) {
+    for (int i = 0; i < mapa->alto; i++)
+        free(mapa->casillas[i]);
+    free(mapa->casillas);
+    free(mapa->torres);
+    free(mapa);
+}
+
 void mostrar_mapa(Mapa *mapa) {
+    limpiar_pantalla();
+
     for (int x = 0; x < mapa->alto; x++) {
         for (int y = 0; y < mapa->ancho; y++)
             printf("%c ", casilla_a_imprimible(mapa->casillas[x][y]));
@@ -38,13 +52,4 @@ void mostrar_mapa(Mapa *mapa) {
     }
 
     printf("\n\n");
-}
-
-void liberar_mapa(Mapa *mapa) {
-    for (int i = 0; i < mapa->alto; i++)
-        free(mapa->casillas[i]);
-    free(mapa->casillas);
-    free(mapa->torres);
-
-    free(mapa);
 }
