@@ -44,8 +44,6 @@ static int area_ataque(int distancia) {
 
 static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones_ataque, int indice_ataque, int ancho, int alto) {
     int nro_ataques = 0;
-    // printf("TORRE: %d %d\n", posicion_torre.x, posicion_torre.y);
-    // printf("Ancho: %d - Alto: %d\n", ancho, alto);
 
     for (int dx = -DISTANCIA_ATAQUE; dx <= DISTANCIA_ATAQUE; dx++) {
         for (int dy = -DISTANCIA_ATAQUE; dy <= DISTANCIA_ATAQUE; dy++) {
@@ -55,9 +53,7 @@ static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones
             if (dx == 0 && dy == 0) continue;
             if (nuevo_x < 0 || nuevo_y < 0) continue;
             if (nuevo_x >= alto || nuevo_y >= ancho) continue;
-            // printf("Calcular posiciones: %d - %d - %d  - %d\n", dx, dy, nuevo_x, nuevo_y);
 
-            // printf("indiceataque: %d nroataques: %d\n", indice_ataque, nro_ataques);
             posiciones_ataque[indice_ataque + nro_ataques].x = nuevo_x;
             posiciones_ataque[indice_ataque + nro_ataques].y = nuevo_y;
             nro_ataques++;
@@ -69,30 +65,20 @@ static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones
 
 void simular_nivel(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
     inicializar_turno(nivel, mapa, colocar_torres);
-    // for (int i = 0; i < mapa->cant_torres; i++)
-    //     printf("%d%d\n", mapa->torres[i].x, mapa->torres[i].y);
 
     int nro_ataques = mapa->cant_torres * area_ataque(DISTANCIA_ATAQUE);
-    // printf("Area ataque: %d\n", nro_ataques);
     Coordenada posiciones_ataque[nro_ataques];
     int nro_ataques_efectivos = 0;
 
     for (int i = 0; i < mapa->cant_torres; i++) {
         nro_ataques_efectivos += calcular_posiciones(mapa->torres[i], posiciones_ataque, nro_ataques_efectivos, mapa->ancho, mapa->alto);
-        // printf("Torre: %d - ataques: %d\n", i, nro_ataques_efectivos);
     }
-    
-    // printf("Ataques: %d\n", nro_ataques_efectivos);
-    // for(int i = 0; i < nro_ataques_efectivos; i++)
-    //     printf("(%d - %d)", posiciones_ataque[i].x, posiciones_ataque[i].y);
-    
+        
     int escape = 0;
     for (int turno = 0; nivel->enemigos->cantidad_activos && !escape; turno++) {
         // limpiar_pantalla();
-        printf("Turno numero: %d\n", turno + 1);
         mostrar_mapa(mapa);
 
-        // printf("Cantidad de enemigos activos: %d\n", nivel->enemigos->cantidad_activos);
         escape += simular_turno(mapa, nivel, posiciones_ataque, nro_ataques_efectivos);
         sleep(1);
     }

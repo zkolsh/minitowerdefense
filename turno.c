@@ -63,13 +63,11 @@ static int actualizar_activos(Nivel *nivel, Mapa *mapa) {
         }
     }
 
-    printf("Escape: %d  - mia: %d\n", escape, mia);
     nivel->enemigos->cantidad_activos = nivel->enemigos->cantidad - (escape + mia);
     return escape;
 }
 
 static int enemigo_en_mapa(Coordenada enemigo, int ancho, int alto) {
-    // printf("%d %d %d %d %d %d\n", enemigo.x, enemigo.y, enemigo.x >= 0, enemigo.x < ancho, enemigo.y >= 0, enemigo.y < alto);
     return enemigo.x >= 0 && enemigo.x < ancho &&
            enemigo.y >= 0 && enemigo.y < alto;
 }
@@ -82,7 +80,6 @@ static void actualizar_mapa(Nivel *nivel, Mapa *mapa) {
     // Actualizar enemigos
     for (int i = 0; i < nivel->enemigos->cantidad ; i++) {
         if(enemigo_en_mapa(nivel->enemigos->posiciones[i], mapa->ancho, mapa->alto) && nivel->enemigos->activos[i]) {
-            // printf("Colocando enemigo %d %d que esta activo: %d\n", nivel->enemigos->posiciones[i].x, nivel->enemigos->posiciones[i].y, nivel->enemigos->activos[i]);
             mapa->casillas[nivel->enemigos->posiciones[i].y][nivel->enemigos->posiciones[i].x] = ENEMIGO;
         }
     }
@@ -93,11 +90,9 @@ static int es_enemigo(TipoCasilla t) {
 }
 
 static int buscarEnemigo(Coordenada *posiciones_enemigos, int cant_enemigos, Coordenada ataque) {
-    // printf("Buscando enemigo en %d %d\n", ataque.x, ataque.y);
     int encontrado = 0, posicion = -1;
 
     for (int i = 0; i < cant_enemigos && !encontrado; i++){
-        // printf("Enemigo %d en %d %d\n", i, posiciones_enemigos[i].x, posiciones_enemigos[i].y);
         if(posiciones_enemigos[i].y == ataque.x &&
            posiciones_enemigos[i].x == ataque.y) {
             encontrado = 1;
@@ -116,9 +111,7 @@ static void disminuir_vidas(Nivel *nivel, Mapa *mapa, Coordenada *posiciones_ata
         enemigo = es_enemigo(mapa->casillas[posiciones_ataque[i].x][posiciones_ataque[i].y]);
         if(!enemigo) continue;
 
-        // printf("Enemigo en posicion: %d %d\n", posiciones_ataque[i].x, posiciones_ataque[i].y);
         nro_enemigo = buscarEnemigo(nivel->enemigos->posiciones, nivel->enemigos->cantidad, posiciones_ataque[i]);
-        // printf("Enemigo numero: %d\n", nro_enemigo);
 
         if (nivel->enemigos->vida[nro_enemigo])
             nivel->enemigos->vida[nro_enemigo]--;

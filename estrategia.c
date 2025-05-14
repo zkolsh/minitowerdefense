@@ -9,7 +9,6 @@ static int posiciones_validas(Coordenada *validas, TipoCasilla **casillas, int a
     for (int i = 0; i < alto; i++) {
         for (int j = 0; j < ancho; j++) {
             if (casillas[i][j] == VACIO) {
-                // printf("Posicion valida para torre: %d %d\n", i, j);
                 validas[cant_posiciones_validas].x = i;
                 validas[cant_posiciones_validas++].y = j;
             }
@@ -44,9 +43,6 @@ void colocacion_basica(Nivel* nivel, Mapa* mapa) {
     for(int i = 0; i < cantidad_casillas; casilla_elegida[i++] = 0);
 
     int cant_validas = posiciones_validas(posiciones_validas_torre, mapa->casillas, mapa->alto, mapa->ancho);
-    // printf("Posiciones validas: %d\n", cant_validas);
-    // for(int i = 0; i < cant_validas; i++)
-    //     printf("%d%d\n", posiciones_validas_torre[i].x, posiciones_validas_torre[i].y);
 
     for (int colocadas = 0; colocadas < mapa->cant_torres; colocadas++) {
         int nueva_torre = determinar_posicion_torre(casilla_elegida, cant_validas);
