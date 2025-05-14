@@ -67,13 +67,13 @@ void simular_nivel(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
         
     int escape = 0;
     for (int turno = 0; nivel->enemigos->cantidad_activos && !escape; turno++) {
-        mostrar_mapa(mapa);
+        mostrar_mapa(mapa, nivel->enemigos);
 
         escape += simular_turno(mapa, nivel, posiciones_ataque, nro_ataques_efectivos);
         sleep(1);
     }
 
-    mostrar_mapa(mapa);
+    mostrar_mapa(mapa, nivel->enemigos);
 
     if(!nivel->enemigos->cantidad_activos) {
         printf("\n¡Conseguiste eliminar a todos los enemigos!\n");
@@ -123,9 +123,11 @@ int main() {
                     liberar_simulacion(nivel, mapa);
                     memoria_a_liberar = 0;
                 }
-                                
+                
+                inicializar_simulacion(ruta_nivel_actual, &nivel, &mapa);
+                
                 printf("Vas a jugar en el sigueinte nivel\n");
-                mostrar_mapa(mapa);
+                mostrar_mapa(mapa, nivel->enemigos);
                 break;
             case 3:
                 inicializar_simulacion(ruta_nivel_actual, &nivel, &mapa);

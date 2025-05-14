@@ -89,7 +89,7 @@ static int es_enemigo(TipoCasilla t) {
     return t == ENEMIGO;
 }
 
-static int buscarEnemigo(Coordenada *posiciones_enemigos, int cant_enemigos, Coordenada ataque) {
+int buscarEnemigo(Coordenada *posiciones_enemigos, int cant_enemigos, Coordenada ataque) {
     int encontrado = 0, posicion = -1;
 
     for (int i = 0; i < cant_enemigos && !encontrado; i++){
