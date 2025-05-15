@@ -2,7 +2,7 @@
 #include "turno.h"
 
 void limpiar_pantalla() {
-    // system(limpiar);
+    system(limpiar);
 }
 
 Mapa *inicializar_mapa(int ancho, int alto, int cant_torres, int distancia_ataque) {
@@ -47,10 +47,10 @@ void hsv_to_rgb_ansi(float h, int *r, int *g, int *b) {
 }
 
 int color_de_vida(int vida, int vida_max) {
-    if (vida <= 0) return GREEN;
-    if (vida >= vida_max) return RED;
+    if (vida <= 1) return RED;
+    if (vida >= vida_max) return GREEN;
 
-    int steps = vida_max - 1;
+    int steps = vida_max - 2;
     int step = vida_max - vida;
     float hue = 120.0f * step / (float)steps;
 
@@ -98,7 +98,8 @@ void mostrar_mapa(Mapa *mapa, Enemigos *enemigos) {
             coord.x = x;
             coord.y = y;
             if (c == ENEMIGO) {
-                int vida = buscarEnemigo(enemigos->posiciones, enemigos->cantidad, coord);
+                int indice_enemigo = buscarEnemigo(enemigos->posiciones, enemigos->cantidad, coord);
+                int vida = enemigos->vida[indice_enemigo];
                 imprimir_casilla(c, vida, VIDA_INICIAL);
             } else {
                 imprimir_casilla(c, 0, VIDA_INICIAL);
