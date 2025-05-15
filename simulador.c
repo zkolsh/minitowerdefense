@@ -8,11 +8,16 @@ void inicializar_simulacion(const char* filename, Nivel** nivel, Mapa **mapa) {
         exit(1);
     }
 
-    int ancho, alto, cant_enemigos, cant_torres, largo_camino;
-    fscanf(f, "%d %d %d %d %d\n", &ancho, &alto, &cant_enemigos, &cant_torres, &largo_camino);
+    int ancho, alto, cant_enemigos, cant_torres, largo_camino, distancia_ataque;
+    fscanf(f, "Ancho: %d\n", &ancho);
+    fscanf(f, "Alto: %d\n", &alto);
+    fscanf(f, "Cantidad de enemigos: %d\n", &cant_enemigos);
+    fscanf(f, "Cantidad de torres: %d\n", &cant_torres);
+    fscanf(f, "Distancia de ataque: %d\n", &distancia_ataque);
+    fscanf(f, "Largo camino: %d\n", &largo_camino);
 
     *nivel = inicializar_nivel(largo_camino, cant_enemigos);
-    *mapa = inicializar_mapa(ancho, alto, cant_torres);
+    *mapa = inicializar_mapa(ancho, alto, cant_torres, distancia_ataque);
 
     char fila[MAX_LINEA];
     int n_camino = 0;
@@ -57,7 +62,7 @@ static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones
 void simular_nivel(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
     inicializar_turno(nivel, mapa, colocar_torres);
 
-    int nro_ataques = mapa->cant_torres * area_ataque(DISTANCIA_ATAQUE);
+    int nro_ataques = mapa->cant_torres * area_ataque(mapa->distancia_ataque);
     Coordenada posiciones_ataque[nro_ataques];
     int nro_ataques_efectivos = 0;
 

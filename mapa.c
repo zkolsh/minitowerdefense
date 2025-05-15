@@ -2,10 +2,10 @@
 #include "turno.h"
 
 void limpiar_pantalla() {
-    // system(limpiar);
+    system(limpiar);
 }
 
-Mapa *inicializar_mapa(int ancho, int alto, int cant_torres) {
+Mapa *inicializar_mapa(int ancho, int alto, int cant_torres, int distancia_ataque) {
     Mapa *mapa = malloc(sizeof(Mapa));
     mapa->casillas = malloc(sizeof(TipoCasilla*) * alto);
 
@@ -16,6 +16,7 @@ Mapa *inicializar_mapa(int ancho, int alto, int cant_torres) {
     mapa->torres = malloc(sizeof(Coordenada) * cant_torres);
     mapa->ancho = ancho;
     mapa->alto = alto;
+    mapa->distancia_ataque = distancia_ataque;
 
     return mapa;
 }
@@ -29,12 +30,10 @@ void liberar_mapa(Mapa *mapa) {
 }
 
 static int color_de_vida(int vida, int vida_max) {
-    int green = 46, red = 196;
+    if (vida <= 0) return RED;
+    if (vida >= vida_max) return GREEN;
 
-    if (vida <= 0) return red; // dead = dark
-    if (vida >= vida_max) return green; // max = green
-
-    return green + (vida_max - vida) * (red - green) / vida_max;
+    return GREEN + (vida_max - vida) * (RED - GREEN) / vida_max;
 }
 
 void imprimir_casilla(TipoCasilla tipo, int vida, int vida_max) {
@@ -56,13 +55,17 @@ void imprimir_casilla(TipoCasilla tipo, int vida, int vida_max) {
     }
 }
 
+static void imprimir_borde_horizontal(int ancho, int top) {
+    top ? printf("╔") : printf("╚");
+    for (int i = 0; i < ancho; i++)
+        printf("══════");
+    top ? printf("╗\n") : printf("╝");
+}
+
 void mostrar_mapa(Mapa *mapa, Enemigos *enemigos) {
     limpiar_pantalla();
 
-    printf("╔");
-    for (int i = 0; i < mapa->ancho; i++)
-        printf("──────");
-    printf("╗\n");
+    imprimir_borde_horizontal(mapa->ancho, 1);
 
     for (int x = 0; x < mapa->alto; x++) {
         printf("║");
@@ -81,11 +84,9 @@ void mostrar_mapa(Mapa *mapa, Enemigos *enemigos) {
         printf("║\n");
     }
 
-    printf("╚");
-    for (int i = 0; i < mapa->ancho; i++)
-        printf("──────");
-    printf("╝\n\n");
+    imprimir_borde_horizontal(mapa->ancho, 0);
 
+    printf("\n");
     printf("  .     = path\n");
     printf("  T     = tower\n");
     printf("  *     = enemy (color = health)\n");

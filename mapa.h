@@ -6,18 +6,18 @@
 #include "stdio.h"
 
 #define limpiar "clear"
-#define ANSI_RESET "\x1b[0m"
-#define CELL_WIDTH 6
+#define GREEN 46
+#define RED 196
 
 typedef enum { CAMINO, TORRE, VACIO, BLOQUEADO, ENEMIGO } TipoCasilla;
 
 typedef struct {
-    int ancho, alto, cant_torres;
+    int ancho, alto, cant_torres, distancia_ataque;
     TipoCasilla **casillas;
     Coordenada *torres;
 } Mapa;
 
-Mapa *inicializar_mapa(int, int, int);
+Mapa *inicializar_mapa(int, int, int, int);
 
 void mostrar_mapa(Mapa *mapa, Enemigos *enemigos);
 

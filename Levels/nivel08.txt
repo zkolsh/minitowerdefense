@@ -1,8 +1,13 @@
-8 9 14 6 33
-CCVBBBBBBBB
-VCVBBBBBBBB
-VCVBBBBBBBB
-VCVVVVVVVVV
-VCCCCCCCCCV
-VCCCCCCCCCV
-VCCCCCCCCCC
+Ancho: 5
+Alto: 7
+Cantidad de enemigos: 30
+Cantidad de torres: 4
+Distancia de ataque: 2
+Largo camino: 11
+CCVBB
+VCVBB
+VCVBB
+VCVBB
+VCVBB
+VCVVV
+VCCCC

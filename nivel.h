@@ -1,8 +1,7 @@
 #ifndef NIVEL_H
 #define NIVEL_H
 
-#define VIDA_INICIAL 5
-#define DISTANCIA_ATAQUE 1
+#define VIDA_INICIAL 10
 
 #include "stdlib.h"
 #include "stdio.h"
