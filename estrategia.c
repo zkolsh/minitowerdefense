@@ -36,7 +36,7 @@ static int determinar_posicion_torre(int *casilla_elegida, int cant_validas) {
 }
 
 
-void colocacion_basica(Nivel* nivel, Mapa* mapa) {
+void disponer(Nivel* nivel, Mapa* mapa) {
     int cantidad_casillas = mapa->alto * mapa->ancho;
     Coordenada posiciones_validas_torre[cantidad_casillas];
     int casilla_elegida[cantidad_casillas];
@@ -53,7 +53,12 @@ void colocacion_basica(Nivel* nivel, Mapa* mapa) {
     }
 }
 
-void estrategia_avanzada(Nivel* nivel, Mapa* mapa) {
+void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
+    /* A cargo de la/el estudiante */
+    return;
+}
+
+void disponer_custom(Nivel* nivel, Mapa* mapa) {
     /* A cargo de la/el estudiante */
     return;
 }

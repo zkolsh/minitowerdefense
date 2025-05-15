@@ -1,7 +1,7 @@
 #ifndef NIVEL_H
 #define NIVEL_H
 
-#define VIDA_INICIAL 10
+#define VIDA_INICIAL 5
 
 #include "stdlib.h"
 #include "stdio.h"

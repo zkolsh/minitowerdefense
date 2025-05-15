@@ -8,6 +8,6 @@ int simular_turno(Mapa *mapa, Nivel *nivel, Coordenada*, int);
 
 int buscarEnemigo(Coordenada*, int, Coordenada);
 
-void inicializar_turno(Nivel *nivel, Mapa *mapa, Estrategia estrategia);
+void inicializar_turno(Nivel *nivel, Mapa *mapa, DisposicionTorres estrategia);
 
 #endif

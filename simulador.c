@@ -38,11 +38,11 @@ static int area_ataque(int distancia) {
     return 4 * distancia * (distancia + 1);
 }
 
-static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones_ataque, int indice_ataque, int ancho, int alto) {
+static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones_ataque, int indice_ataque, int ancho, int alto, int distancia_ataque) {
     int nro_ataques = 0;
 
-    for (int dx = -DISTANCIA_ATAQUE; dx <= DISTANCIA_ATAQUE; dx++) {
-        for (int dy = -DISTANCIA_ATAQUE; dy <= DISTANCIA_ATAQUE; dy++) {
+    for (int dx = -distancia_ataque; dx <= distancia_ataque; dx++) {
+        for (int dy = -distancia_ataque; dy <= distancia_ataque; dy++) {
             int nuevo_x = posicion_torre.x + dx;
             int nuevo_y = posicion_torre.y + dy;
 
@@ -59,7 +59,7 @@ static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones
     return nro_ataques;
 }
 
-void simular_nivel(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
+void simular_nivel(Nivel *nivel, Mapa *mapa, DisposicionTorres colocar_torres) {
     inicializar_turno(nivel, mapa, colocar_torres);
 
     int nro_ataques = mapa->cant_torres * area_ataque(mapa->distancia_ataque);
@@ -67,7 +67,7 @@ void simular_nivel(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
     int nro_ataques_efectivos = 0;
 
     for (int i = 0; i < mapa->cant_torres; i++) {
-        nro_ataques_efectivos += calcular_posiciones(mapa->torres[i], posiciones_ataque, nro_ataques_efectivos, mapa->ancho, mapa->alto);
+            nro_ataques_efectivos += calcular_posiciones(mapa->torres[i], posiciones_ataque, nro_ataques_efectivos, mapa->ancho, mapa->alto, mapa->distancia_ataque);
     }
         
     int escape = 0;
@@ -88,12 +88,12 @@ void simular_nivel(Nivel *nivel, Mapa *mapa, Estrategia colocar_torres) {
     printf("\n¡Se te escaparon!\n");
 }
 
-int mostrar_menu(Estrategia estrategia_actual, char *ruta_nivel_actual) {
+static int mostrar_menu(DisposicionTorres estrategia_actual, char *ruta_nivel_actual) {
     int opcion = 3;
 
     limpiar_pantalla();
     printf("\n--- Menú del simulador ---\n");
-    printf("1. Seleccionar estrategia (actual: %s)\n", (estrategia_actual == colocacion_basica) ? "Básica" : "Avanzada");
+    printf("1. Seleccionar estrategia (actual: %s)\n", (estrategia_actual == disponer) ? "Básica" : "Avanzada");
     printf("2. Seleccionar nivel (actual: %s)\n", ruta_nivel_actual);
     printf("3. Iniciar simulación\n");
     printf("0. Salir\n");
@@ -104,9 +104,32 @@ int mostrar_menu(Estrategia estrategia_actual, char *ruta_nivel_actual) {
     return opcion;
 }
 
+static DisposicionTorres determinar_estrategia() {
+    int opcion = 0;
+
+    limpiar_pantalla();
+    printf("\n--- Opciones de estrategia ---\n");
+    printf("0. Disposición básica\n");
+    printf("1. Disposición con backtracking\n");
+    printf("2. Disposición custom\n");
+
+    printf("Seleccione una opción: ");
+    scanf("%d", &opcion);
+
+    switch(opcion) {
+        case 1:
+            return disponer_con_backtracking;
+        case 2:
+            return disponer_custom;
+        case 0:
+        default:
+            return disponer;
+    }
+}
+
 int main() {
     srand(time(NULL));
-    Estrategia estrategia_actual = colocacion_basica;
+    DisposicionTorres estrategia_actual = disponer;
     char ruta_nivel_actual[] = "Levels/nivel01.txt";
 
     Nivel *nivel = NULL;
@@ -118,7 +141,7 @@ int main() {
 
         switch(opcion) {
             case 1:
-                estrategia_actual = (estrategia_actual == colocacion_basica) ? estrategia_avanzada : colocacion_basica;
+                estrategia_actual = determinar_estrategia();
                 break;
             case 2:
                 printf("Ingrese la ruta al archivo de nivel: ");
