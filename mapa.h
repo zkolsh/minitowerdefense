@@ -4,10 +4,12 @@
 #include "nivel.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "math.h"
 
 #define limpiar "clear"
-#define GREEN 46
 #define RED 196
+#define GREEN 46
+#define ANSI_COLOR_INDEX(r, g, b) (16 + 36 * (r) + 6 * (g) + (b))
 
 typedef enum { CAMINO, TORRE, VACIO, BLOQUEADO, ENEMIGO } TipoCasilla;
 

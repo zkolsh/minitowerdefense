@@ -2,7 +2,7 @@
 #include "turno.h"
 
 void limpiar_pantalla() {
-    system(limpiar);
+    // system(limpiar);
 }
 
 Mapa *inicializar_mapa(int ancho, int alto, int cant_torres, int distancia_ataque) {
@@ -29,11 +29,34 @@ void liberar_mapa(Mapa *mapa) {
     free(mapa);
 }
 
-static int color_de_vida(int vida, int vida_max) {
-    if (vida <= 0) return RED;
-    if (vida >= vida_max) return GREEN;
+void hsv_to_rgb_ansi(float h, int *r, int *g, int *b) {
+    float c = 1.0;
+    float x = (1 - fabs(fmodf(h / 60.0, 2) - 1)) * c;
+    float r_f = 0, g_f = 0, b_f = 0;
 
-    return GREEN + (vida_max - vida) * (RED - GREEN) / vida_max;
+    if (h < 60)       { r_f = c; g_f = x; }
+    else if (h < 120) { r_f = x; g_f = c; }
+    else if (h < 180) { g_f = c; b_f = x; }
+    else if (h < 240) { g_f = x; b_f = c; }
+    else if (h < 300) { r_f = x; b_f = c; }
+    else              { r_f = c; b_f = x; }
+
+    *r = (int)(r_f * 5 + 0.5);
+    *g = (int)(g_f * 5 + 0.5);
+    *b = (int)(b_f * 5 + 0.5);
+}
+
+int color_de_vida(int vida, int vida_max) {
+    if (vida <= 0) return GREEN;
+    if (vida >= vida_max) return RED;
+
+    int steps = vida_max - 1;
+    int step = vida_max - vida;
+    float hue = 120.0f * step / (float)steps;
+
+    int r, g, b;
+    hsv_to_rgb_ansi(hue, &r, &g, &b);
+    return ANSI_COLOR_INDEX(r, g, b);
 }
 
 void imprimir_casilla(TipoCasilla tipo, int vida, int vida_max) {
@@ -89,6 +112,6 @@ void mostrar_mapa(Mapa *mapa, Enemigos *enemigos) {
     printf("\n");
     printf("  .     = path\n");
     printf("  T     = tower\n");
-    printf("  *     = enemy (color = health)\n");
+    printf("  *     = enemy (verde -> maxima vida, rojo -> minima vida)\n");
     printf("  Enemigos vivos: %d\n\n", enemigos->cantidad_activos);
 }
