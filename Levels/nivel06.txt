@@ -1,7 +1,8 @@
 Ancho: 5
 Alto: 5
 Cantidad de enemigos: 17
-Cantidad de torres: 3
+Vida inicial: 6
+Cantidad de torres: 2
 Distancia de ataque: 2
 Largo camino: 9
 CCVBB
