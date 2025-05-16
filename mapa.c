@@ -29,7 +29,7 @@ void liberar_mapa(Mapa *mapa) {
     free(mapa);
 }
 
-void hsv_to_rgb_ansi(float h, int *r, int *g, int *b) {
+static void hsv_to_rgb_ansi(float h, int *r, int *g, int *b) {
     float c = 1.0;
     float x = (1 - fabs(fmodf(h / 60.0, 2) - 1)) * c;
     float r_f = 0, g_f = 0, b_f = 0;
@@ -46,7 +46,7 @@ void hsv_to_rgb_ansi(float h, int *r, int *g, int *b) {
     *b = (int)(b_f * 5 + 0.5);
 }
 
-int color_de_vida(int vida, int vida_max) {
+static int color_de_vida(int vida, int vida_max) {
     if (vida <= 1) return RED;
     if (vida >= vida_max) return GREEN;
 

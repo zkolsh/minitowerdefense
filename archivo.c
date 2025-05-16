@@ -1,7 +1,5 @@
 #include "archivo.h"
 
-// TODO hacer caminos de ancho 1
-
 static TipoCasilla transformar_a_casilla(char c) {
     switch(c) {
         case 'C':

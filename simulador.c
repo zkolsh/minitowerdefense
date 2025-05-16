@@ -59,7 +59,7 @@ static int calcular_posiciones(Coordenada posicion_torre, Coordenada *posiciones
     return nro_ataques;
 }
 
-void simular_nivel(Nivel *nivel, Mapa *mapa, DisposicionTorres colocar_torres) {
+int simular_nivel(Nivel *nivel, Mapa *mapa, DisposicionTorres colocar_torres) {
     inicializar_turno(nivel, mapa, colocar_torres);
 
     int nro_ataques = mapa->cant_torres * area_ataque(mapa->distancia_ataque);
@@ -67,7 +67,7 @@ void simular_nivel(Nivel *nivel, Mapa *mapa, DisposicionTorres colocar_torres) {
     int nro_ataques_efectivos = 0;
 
     for (int i = 0; i < mapa->cant_torres; i++) {
-            nro_ataques_efectivos += calcular_posiciones(mapa->torres[i], posiciones_ataque, nro_ataques_efectivos, mapa->ancho, mapa->alto, mapa->distancia_ataque);
+        nro_ataques_efectivos += calcular_posiciones(mapa->torres[i], posiciones_ataque, nro_ataques_efectivos, mapa->ancho, mapa->alto, mapa->distancia_ataque);
     }
         
     int escape = 0;
@@ -80,12 +80,7 @@ void simular_nivel(Nivel *nivel, Mapa *mapa, DisposicionTorres colocar_torres) {
 
     mostrar_mapa(mapa, nivel->enemigos);
 
-    if(!nivel->enemigos->cantidad_activos) {
-        printf("\n¡Conseguiste eliminar a todos los enemigos!\n");
-        return;
-    }
-
-    printf("\n¡Se te escaparon!\n");
+    return !nivel->enemigos->cantidad_activos;
 }
 
 static int mostrar_menu(DisposicionTorres estrategia_actual, char *ruta_nivel_actual) {
@@ -127,6 +122,15 @@ static DisposicionTorres determinar_estrategia() {
     }
 }
 
+static void mostrar_mensaje_final(int ganador) {
+    if(ganador) {
+        printf("\n¡Conseguiste eliminar a todos los enemigos!\n");
+        return;
+    }
+
+    printf("\n¡Se te escaparon!\n");
+}
+
 int main() {
     srand(time(NULL));
     DisposicionTorres estrategia_actual = disponer;
@@ -156,10 +160,17 @@ int main() {
                 
                 printf("Vas a jugar en el sigueinte nivel\n");
                 mostrar_mapa(mapa, nivel->enemigos);
+                sleep(2);
                 break;
             case 3:
+                if(memoria_a_liberar) {
+                    liberar_simulacion(nivel, mapa);
+                    memoria_a_liberar = 0;
+                }
+                
                 inicializar_simulacion(ruta_nivel_actual, &nivel, &mapa);
-                simular_nivel(nivel, mapa, estrategia_actual);
+                int ganador = simular_nivel(nivel, mapa, estrategia_actual);
+                mostrar_mensaje_final(ganador);
                 sleep(3);
                 memoria_a_liberar = 1;
                 break;
