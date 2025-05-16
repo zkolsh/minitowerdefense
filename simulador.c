@@ -72,7 +72,6 @@ int simular_nivel(Nivel *nivel, Mapa *mapa, DisposicionTorres colocar_torres) {
         
     int escape = 0;
     for (int turno = 0; nivel->enemigos->cantidad_activos && !escape; turno++) {
-        mostrar_enemigos(nivel->enemigos);
         mostrar_mapa(mapa, nivel->enemigos);
 
         escape += simular_turno(mapa, nivel, posiciones_ataque, nro_ataques_efectivos);
