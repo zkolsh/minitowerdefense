@@ -116,5 +116,6 @@ void mostrar_mapa(Mapa *mapa, Enemigos *enemigos) {
     printf("  .     = path\n");
     printf("  T     = tower\n");
     printf("  *     = enemy (verde -> maxima vida, rojo -> minima vida)\n");
-    printf("  Enemigos vivos: %d\n\n", enemigos->cantidad_activos);
+    printf("  Enemigos vivos: %d\n", enemigos->cantidad_activos);
+    printf("  Vida inicial: %d\n\n", enemigos->vida_inicial);
 }

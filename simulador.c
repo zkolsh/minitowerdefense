@@ -87,7 +87,7 @@ static int mostrar_menu(DisposicionTorres estrategia_actual, char *ruta_nivel_ac
 
     limpiar_pantalla();
     printf("\n--- Menú del simulador ---\n");
-    printf("1. Seleccionar estrategia (actual: %s)\n", (estrategia_actual == disponer) ? "Básica" : "Avanzada");
+    printf("1. Seleccionar estrategia (actual: %s)\n", (estrategia_actual == disponer) ? "Básica" : "Otra");
     printf("2. Seleccionar nivel (actual: %s)\n", ruta_nivel_actual);
     printf("3. Iniciar simulación\n");
     printf("0. Salir\n");
