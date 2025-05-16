@@ -80,7 +80,7 @@ int simular_nivel(Nivel *nivel, Mapa *mapa, DisposicionTorres colocar_torres) {
 
     mostrar_mapa(mapa, nivel->enemigos);
 
-    return !nivel->enemigos->cantidad_activos;
+    return !(nivel->enemigos->cantidad_activos);
 }
 
 static int mostrar_menu(DisposicionTorres estrategia_actual, char *ruta_nivel_actual) {
@@ -134,7 +134,7 @@ static void mostrar_mensaje_final(int ganador) {
 int main() {
     srand(time(NULL));
     DisposicionTorres estrategia_actual = disponer;
-    char ruta_nivel_actual[] = "Levels/nivel01.txt";
+    char ruta_nivel_actual[MAX_LINEA] = "Levels/nivel01.txt";
 
     Nivel *nivel = NULL;
     Mapa *mapa = NULL;
@@ -157,6 +157,7 @@ int main() {
                 }
                 
                 inicializar_simulacion(ruta_nivel_actual, &nivel, &mapa);
+                memoria_a_liberar = 1;
                 
                 printf("Vas a jugar en el sigueinte nivel\n");
                 mostrar_mapa(mapa, nivel->enemigos);
