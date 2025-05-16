@@ -38,7 +38,7 @@ static Enemigos *inicializar_enemigos(int cant_enemigos) {
     return enemigos;
 }
 
-static void mostrar_enemigos(Enemigos *enemigos) {
+void mostrar_enemigos(Enemigos *enemigos) {
     printf("Cantidad enemigos: %d - Cantidad enemigos activos: %d\n",
         enemigos->cantidad, enemigos->cantidad_activos);
     for (int i = 0; i < enemigos->cantidad; i++) {

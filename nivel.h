@@ -30,6 +30,8 @@ Nivel *inicializar_nivel(int largo_camino, int cant_enemigos);
 
 void mostrar_nivel(Nivel *info);
 
+void mostrar_enemigos(Enemigos *enemigos);
+
 void liberar_nivel(Nivel*);
 
 #endif
