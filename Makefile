@@ -1,5 +1,5 @@
 CC       := gcc
-CFLAGS   := -Wall -Werror -g
+CFLAGS   := -Wall -g
 BIN      := tower_defense
 LFLAGS   := -lm
 
