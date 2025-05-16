@@ -134,7 +134,8 @@ static void mostrar_mensaje_final(int ganador) {
 int main() {
     srand(time(NULL));
     DisposicionTorres estrategia_actual = disponer;
-    char ruta_nivel_actual[MAX_LINEA] = "Levels/nivel01.txt";
+    char ruta_nivel_actual[MAX_LINEA];
+    strcpy(ruta_nivel_actual, "Levels/nivel01.txt");
 
     Nivel *nivel = NULL;
     Mapa *mapa = NULL;
