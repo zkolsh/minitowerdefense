@@ -72,13 +72,12 @@ int simular_nivel(Nivel *nivel, Mapa *mapa, DisposicionTorres colocar_torres) {
         
     int escape = 0;
     for (int turno = 0; nivel->enemigos->cantidad_activos && !escape; turno++) {
+        mostrar_enemigos(nivel->enemigos);
         mostrar_mapa(mapa, nivel->enemigos);
 
         escape += simular_turno(mapa, nivel, posiciones_ataque, nro_ataques_efectivos);
         sleep(1);
     }
-
-    mostrar_mapa(mapa, nivel->enemigos);
 
     return !(nivel->enemigos->cantidad_activos);
 }
@@ -172,6 +171,7 @@ int main() {
                 
                 inicializar_simulacion(ruta_nivel_actual, &nivel, &mapa);
                 int ganador = simular_nivel(nivel, mapa, estrategia_actual);
+                mostrar_mapa(mapa, nivel->enemigos);
                 mostrar_mensaje_final(ganador);
                 sleep(3);
                 memoria_a_liberar = 1;

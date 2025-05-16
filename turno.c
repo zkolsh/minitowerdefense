@@ -56,8 +56,9 @@ static int actualizar_activos(Nivel *nivel, Mapa *mapa) {
             mia++;
         }
 
-        if (nivel->enemigos->posiciones[i].x >= mapa->ancho ||
-            nivel->enemigos->posiciones[i].y >= mapa->alto) {
+        if ((nivel->enemigos->posiciones[i].x >= mapa->ancho ||
+            nivel->enemigos->posiciones[i].y >= mapa->alto) &&
+            nivel->enemigos->vida[i]) {
             nivel->enemigos->activos[i] = 0;
             escape++;
         }
