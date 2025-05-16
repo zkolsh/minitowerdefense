@@ -1,8 +1,6 @@
 #ifndef NIVEL_H
 #define NIVEL_H
 
-#define VIDA_INICIAL 5
-
 #include "stdlib.h"
 #include "stdio.h"
 
@@ -13,7 +11,7 @@ typedef struct {
 typedef struct {
     Coordenada *posiciones;
     int *vida, *activos;
-    int cantidad, cantidad_activos;
+    int cantidad, cantidad_activos, vida_inicial;
 } Enemigos;
 
 typedef struct {
@@ -26,7 +24,7 @@ typedef struct {
     Camino *camino;
 } Nivel;
 
-Nivel *inicializar_nivel(int largo_camino, int cant_enemigos);
+Nivel *inicializar_nivel(int largo_camino, int cant_enemigos, int vida_inicial);
 
 void mostrar_nivel(Nivel *info);
 

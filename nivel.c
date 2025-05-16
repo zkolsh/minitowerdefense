@@ -19,7 +19,7 @@ static void liberar_camino(Camino *camino) {
     free(camino);
 }
 
-static Enemigos *inicializar_enemigos(int cant_enemigos) {
+static Enemigos *inicializar_enemigos(int cant_enemigos, int vida_inicial) {
     Enemigos *enemigos = malloc(sizeof(Enemigos));
 
     enemigos->vida = malloc(sizeof(int) * cant_enemigos);
@@ -28,10 +28,11 @@ static Enemigos *inicializar_enemigos(int cant_enemigos) {
 
     enemigos->cantidad = cant_enemigos;
     enemigos->cantidad_activos = cant_enemigos;
+    enemigos->vida_inicial = vida_inicial;
 
     for (int i = 0; i < cant_enemigos; i++) {
         enemigos->posiciones[i].x = enemigos->posiciones[i].y = -1;
-        enemigos->vida[i] = VIDA_INICIAL;
+        enemigos->vida[i] = vida_inicial;
         enemigos->activos[i] = 1;
     }
     
@@ -59,10 +60,10 @@ void mostrar_nivel(Nivel *nivel) {
     mostrar_enemigos(nivel->enemigos);
 }
 
-Nivel *inicializar_nivel(int largo_camino, int cant_enemigos) {
+Nivel *inicializar_nivel(int largo_camino, int cant_enemigos, int vida_inicial) {
     Nivel *nivel = malloc(sizeof(Nivel));
     nivel->camino = inicializar_camino(largo_camino);
-    nivel->enemigos = inicializar_enemigos(cant_enemigos);
+    nivel->enemigos = inicializar_enemigos(cant_enemigos, vida_inicial);
     return nivel;
 }
 

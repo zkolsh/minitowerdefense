@@ -2,7 +2,7 @@
 #include "turno.h"
 
 void limpiar_pantalla() {
-    // system(limpiar);
+    system(limpiar);
 }
 
 Mapa *inicializar_mapa(int ancho, int alto, int cant_torres, int distancia_ataque) {
@@ -62,20 +62,20 @@ static int color_de_vida(int vida, int vida_max) {
 void imprimir_casilla(TipoCasilla tipo, int vida, int vida_max) {
     switch(tipo) {
         case CAMINO:
-            printf(".     ");
+            printf(".  ");
             return;
         case TORRE:
-            printf("T     ");
+            printf("T  ");
             return;
         case ENEMIGO:
             int color = color_de_vida(vida, vida_max);
             // Usar esta linea cuando se quieran imprimir vidas en vez de colores
-            // printf("%d     ", vida);
-            printf("\x1b[38;5;%dm%-6s\x1b[0m", color, "*");
+            // printf("%d  ", vida);
+            printf("\x1b[38;5;%dm%-3s\x1b[0m", color, "*");
             return;
         case BLOQUEADO:
         case VACIO:
-            printf("      ");
+            printf("   ");
             return;
     }
 }
@@ -83,7 +83,7 @@ void imprimir_casilla(TipoCasilla tipo, int vida, int vida_max) {
 static void imprimir_borde_horizontal(int ancho, int top) {
     top ? printf("╔") : printf("╚");
     for (int i = 0; i < ancho; i++)
-        printf("══════");
+        printf("═══");
     top ? printf("╗\n") : printf("╝");
 }
 
@@ -102,9 +102,9 @@ void mostrar_mapa(Mapa *mapa, Enemigos *enemigos) {
             if (c == ENEMIGO) {
                 int indice_enemigo = buscarEnemigo(enemigos->posiciones, enemigos->cantidad, coord);
                 int vida = enemigos->vida[indice_enemigo];
-                imprimir_casilla(c, vida, VIDA_INICIAL);
+                imprimir_casilla(c, vida, enemigos->vida_inicial);
             } else {
-                imprimir_casilla(c, 0, VIDA_INICIAL);
+                imprimir_casilla(c, 0, enemigos->vida_inicial);
             }
         }
         printf("║\n");

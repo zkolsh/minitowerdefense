@@ -8,15 +8,16 @@ void inicializar_simulacion(const char* filename, Nivel** nivel, Mapa **mapa) {
         exit(1);
     }
 
-    int ancho, alto, cant_enemigos, cant_torres, largo_camino, distancia_ataque;
+    int ancho, alto, cant_enemigos, cant_torres, largo_camino, distancia_ataque, vida_inicial;
     fscanf(f, "Ancho: %d\n", &ancho);
     fscanf(f, "Alto: %d\n", &alto);
     fscanf(f, "Cantidad de enemigos: %d\n", &cant_enemigos);
+    fscanf(f, "Vida inicial: %d\n", &vida_inicial);
     fscanf(f, "Cantidad de torres: %d\n", &cant_torres);
     fscanf(f, "Distancia de ataque: %d\n", &distancia_ataque);
     fscanf(f, "Largo camino: %d\n", &largo_camino);
 
-    *nivel = inicializar_nivel(largo_camino, cant_enemigos);
+    *nivel = inicializar_nivel(largo_camino, cant_enemigos, vida_inicial);
     *mapa = inicializar_mapa(ancho, alto, cant_torres, distancia_ataque);
 
     char fila[MAX_LINEA];

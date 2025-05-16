@@ -29,9 +29,6 @@ static void decidir_nueva_posicion(Enemigos *enemigos, Mapa *mapa) {
     int ancho = mapa->ancho;
     int alto = mapa->alto;
 
-    // if (lider->x == -1 && lider->y == -1 && enemigos->activos[0])
-    //     enemigos->vida[0] = VIDA_INICIAL;
-
     int direccion = rand() % 2; // 0 = abajo, 1 = derecha
     int hay_abajo = camino_abajo(mapa, lider, alto);
     int hay_derecha = camino_derecha(mapa, lider, ancho);
@@ -138,7 +135,7 @@ void inicializar_turno(Nivel *nivel, Mapa *mapa, DisposicionTorres colocar_torre
     // posicion inicial
     nivel->enemigos->posiciones[0].x = 0;
     nivel->enemigos->posiciones[0].y = 0;
-    nivel->enemigos->vida[0] = VIDA_INICIAL;
+    nivel->enemigos->vida[0] = nivel->enemigos->vida_inicial;
 
     actualizar_mapa(nivel, mapa);
 }
