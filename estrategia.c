@@ -3,6 +3,103 @@
 #include <time.h>
 #include <stdlib.h>
 
+static int** obtener_posibles_daños(Mapa* mapa) {
+    int** daños = malloc(sizeof(int) * mapa->ancho);
+    for (size_t i = 0; i < mapa->ancho; i++) {
+        daños[i] = calloc(mapa->alto, sizeof(int));
+    };
+
+    Cola* vecinos = cola_nueva();
+    struct info_vecino {
+        unsigned int codigo;
+        Coordenada posicion;
+        int distancia;
+    };
+
+    for (size_t x = 0; x < mapa->ancho; x++) {
+        for (size_t y = 0; y < mapa->alto; y++) {
+            if (mapa->casillas[x][y] != VACIO) continue;
+            struct info_vecino* nodo = malloc(sizeof(struct info_vecino));
+            nodo->codigo = y * mapa->ancho + x;
+            nodo->posicion.x = x;
+            nodo->posicion.y = y;
+            nodo->distancia = 0;
+        };
+    };
+
+    while (!cola_esta_vacia(vecinos)) {
+        struct info_vecino* nodo = cola_frente(vecinos);
+        cola_desencolar(vecinos);
+
+        if (nodo->posicion.x < 0 || nodo->posicion.x >= mapa->ancho
+         || nodo->posicion.y < 0 || nodo->posicion.y >= mapa->alto
+         || nodo->distancia > mapa->distancia_ataque
+         || daños[nodo->posicion.x][nodo->posicion.y] == -1
+        ) {
+             free(nodo);
+             continue;
+        };
+
+        Coordenada origen;
+        origen.x = nodo->codigo % mapa->ancho;
+        origen.y = (nodo->codigo - origen.x) / mapa->ancho;
+
+        if (nodo->distancia != 0) {
+            daños[origen.x][origen.y]++;
+            daños[nodo->posicion.x][nodo->posicion.y] = -1;
+        };
+
+        struct info_vecino* izq = malloc(sizeof(struct info_vecino));
+        *izq = *nodo;
+        izq->posicion.x--;
+        cola_encolar(vecinos, izq);
+
+        struct info_vecino* sup_izq = malloc(sizeof(struct info_vecino));
+        *sup_izq = *nodo;
+        sup_izq->posicion.x--;
+        sup_izq->posicion.y--;
+        cola_encolar(vecinos, sup_izq);
+
+        struct info_vecino* sup = malloc(sizeof(struct info_vecino));
+        *sup = *nodo;
+        sup->posicion.y--;
+        cola_encolar(vecinos, sup);
+
+        struct info_vecino* sup_der = malloc(sizeof(struct info_vecino));
+        *sup_der = *nodo;
+        sup_der->posicion.x++;
+        sup_der->posicion.y--;
+        cola_encolar(vecinos, sup_der);
+
+        struct info_vecino* der = malloc(sizeof(struct info_vecino));
+        *der = *nodo;
+        der->posicion.x++;
+        cola_encolar(vecinos, der);
+
+        struct info_vecino* inf_der = malloc(sizeof(struct info_vecino));
+        *inf_der = *nodo;
+        inf_der->posicion.x++;
+        inf_der->posicion.y++;
+        cola_encolar(vecinos, inf_der);
+
+        struct info_vecino* inf = malloc(sizeof(struct info_vecino));
+        *inf = *nodo;
+        inf->posicion.y++;
+        cola_encolar(vecinos, inf);
+
+        struct info_vecino* inf_izq = malloc(sizeof(struct info_vecino));
+        *inf_izq = *nodo;
+        inf_izq->posicion.x--;
+        inf_izq->posicion.y++;
+        cola_encolar(vecinos, inf_izq);
+
+        free(nodo);
+    };
+
+    cola_destruir(vecinos, free);
+    return daños;
+};
+
 static int posiciones_validas(Coordenada *validas, TipoCasilla **casillas, int alto, int ancho) {
     int cant_posiciones_validas = 0;
     
@@ -54,9 +151,28 @@ void disponer(Nivel* nivel, Mapa* mapa) {
 }
 
 void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
-    /* A cargo de la/el estudiante */
-    return;
-}
+    Pila* opciones = pila_nueva();
+
+    struct OpcionBacktracking inicio;
+    inicio.daño_restante = nivel->enemigos->vida_inicial;
+    inicio.posicion.x = inicio.posicion.y = -1;
+    pila_apilar(opciones, &inicio);
+
+    for (int x = 0; x < mapa->ancho; x++) {
+        for (int y = 0; y < mapa->alto; y++) {
+            if (mapa->casillas[x][y] != VACIO) continue;
+
+            struct OpcionBacktracking* estado = pila_tope(opciones);
+            if (estado->daño_restante <= 0) break;
+
+            struct OpcionBacktracking* cursor = malloc(sizeof(struct OpcionBacktracking));
+            cursor->daño_restante -= 1; //TODO: la funcion que calcula el daño_restante
+            cursor->posicion.x = x;
+            cursor->posicion.y = y;
+            pila_apilar(opciones, cursor);
+        };
+    };
+};
 
 void disponer_custom(Nivel* nivel, Mapa* mapa) {
     /* A cargo de la/el estudiante */

@@ -3,6 +3,13 @@
 
 #include "mapa.h"
 #include "nivel.h"
+#include "pila.h"
+#include "cola.h"
+
+struct OpcionBacktracking {
+    int daño_restante;
+    Coordenada posicion;
+};
 
 typedef void (*DisposicionTorres)(Nivel*, Mapa*);
 
