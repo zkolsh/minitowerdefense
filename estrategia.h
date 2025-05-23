@@ -6,10 +6,17 @@
 #include "pila.h"
 #include "cola.h"
 
-struct OpcionBacktracking {
-    int daño_restante;
+typedef struct OpcionBacktracking {
+    int daño_acumulado;
+    int torres_colocadas;
+    Coordenada comienzo_busqueda;
     Coordenada posicion;
-};
+} OpcionBacktracking;
+
+typedef struct PosibleTorre {
+    Coordenada posicion;
+    int impacto;
+} PosibleTorre;
 
 typedef void (*DisposicionTorres)(Nivel*, Mapa*);
 
