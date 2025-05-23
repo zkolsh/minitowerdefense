@@ -1,7 +1,4 @@
 #include "estrategia.h"
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
 
 static int** obtener_posibles_daños(Mapa* mapa) {
     int** daños = malloc(sizeof(int*) * mapa->ancho);
@@ -212,12 +209,15 @@ void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
     free(daño);
 };
 
-static int mejor_torre(const PosibleTorre* lhs, const PosibleTorre* rhs) {
-    return 0;
+static int mejor_torre(const void* lhs, const void* rhs) {
+    return ((PosibleTorre*)rhs)->impacto - ((PosibleTorre*)lhs)->impacto;
 };
 
 void disponer_custom(Nivel* nivel, Mapa* mapa) {
+    assert(nivel);
+    assert(mapa);
     int** daño = obtener_posibles_daños(mapa);
+    assert(daño);
 
     size_t cantidad_torres_potenciales = 0;
     for (size_t x = 0; x < mapa->ancho; x++) {
@@ -227,14 +227,16 @@ void disponer_custom(Nivel* nivel, Mapa* mapa) {
     };
 
     PosibleTorre* posibles_torres = malloc(sizeof(PosibleTorre) * cantidad_torres_potenciales);
-    size_t i = 0;
+    assert(posibles_torres);
+    size_t indice_torre = 0;
     for (size_t x = 0; x < mapa->ancho; x++) {
         for (size_t y = 0; y < mapa->alto; y++) {
             if (mapa->casillas[x][y] != VACIO) continue;
 
-            posibles_torres[i].posicion.x = x;
-            posibles_torres[i].posicion.y = y;
-            posibles_torres[i].impacto = daño[x][y];
+            posibles_torres[indice_torre].posicion.x = x;
+            posibles_torres[indice_torre].posicion.y = y;
+            posibles_torres[indice_torre].impacto = daño[x][y];
+            indice_torre++;
         };
     };
 
@@ -243,4 +245,28 @@ void disponer_custom(Nivel* nivel, Mapa* mapa) {
     };
 
     free(daño);
+
+    FILE* f = fopen("debug.log", "w");
+
+    for (size_t i = 0; i < cantidad_torres_potenciales; i++) {
+        fprintf(f, "(%d, %d, %d)\n", posibles_torres[i].posicion.x, posibles_torres[i].posicion.y, posibles_torres[i].impacto);
+    };
+
+    fprintf(f, "------------------\n");
+
+    qsort(posibles_torres, cantidad_torres_potenciales, sizeof(PosibleTorre), mejor_torre);
+
+    for (size_t i = 0; i < cantidad_torres_potenciales; i++) {
+        fprintf(f, "(%d, %d, %d)\n", posibles_torres[i].posicion.x, posibles_torres[i].posicion.y, posibles_torres[i].impacto);
+    };
+
+    fclose(f);
+
+    const size_t torres_a_colocar = (mapa->cant_torres < cantidad_torres_potenciales)? mapa->cant_torres : cantidad_torres_potenciales;
+    for (size_t i = 0; i < torres_a_colocar; i++) {
+        const PosibleTorre* torre = &posibles_torres[i];
+        colocar_torre(mapa, torre->posicion.x, torre->posicion.y, i);
+    };
+
+    free(posibles_torres);
 };

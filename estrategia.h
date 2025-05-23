@@ -1,6 +1,11 @@
 #ifndef ESTRATEGIA_H
 #define ESTRATEGIA_H
 
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
 #include "mapa.h"
 #include "nivel.h"
 #include "pila.h"
