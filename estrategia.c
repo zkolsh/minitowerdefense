@@ -101,52 +101,69 @@ void disponer(Nivel* nivel, Mapa* mapa) {
     };
 };
 
-OpcionBacktracking maximizar_daño(const Mapa* mapa, int** daño, const Coordenada comienzo) {
-    OpcionBacktracking mejorResultado;
-    mejorResultado.daño_acumulado = 0;
-    mejorResultado.torres_colocadas = 0;
-
-    for (int x = comienzo.x; x < mapa->ancho; x++) {
-        for (int y = comienzo.y; y < mapa->alto; y++) {
-            if (mapa->casillas[x][y] != VACIO) continue;
-
-            OpcionBacktracking posible = maximizar_daño(mapa, daño, (Coordenada){x + 1, y});
-            if (mapa->cant_torres - posible.torres_colocadas >= 1) {
-                posible.daño_acumulado += daño[x][y];
-                posible.torres_colocadas++;
-            };
-
-            if (posible.daño_acumulado > mejorResultado.daño_acumulado) {
-                mejorResultado = posible;
-            };
+static void buscar_proxima_torre(ConfiguraciónBacktracking* config, const Mapa* mapa, int** daños, EstadoBacktracking* estado, size_t indice_comienzo) {
+    if (estado->torres_colocadas >= mapa->cant_torres) {
+        if (estado->daño_actual > config->daño_global) {
+            // Nueva mejor disposición; guardar.
+            memcpy(config->torres, estado->torres, sizeof(Coordenada) * estado->torres_colocadas);
+            config->daño_global = estado->daño_actual;
+            config->torres_colocadas = estado->torres_colocadas;
         };
+
+        return;
     };
 
-    return mejorResultado;
+    for (size_t i = indice_comienzo; i < mapa->ancho * mapa->alto; i++) {
+        const size_t x = i % mapa->ancho;
+        const size_t y = i / mapa->ancho;
+
+        if (mapa->casillas[x][y] != VACIO) continue;
+
+        // colocar torre
+        estado->torres[estado->torres_colocadas++] = (Coordenada){x, y};
+        estado->daño_actual += daños[x][y];
+
+        buscar_proxima_torre(config, mapa, daños, estado, i + 1);
+
+        // descolocar torre
+        estado->torres_colocadas--;
+        estado->daño_actual -= daños[x][y];
+    };
 };
 
 void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
-    int** daño = obtener_posibles_daños(mapa);
-    OpcionBacktracking mejorDisposición;
-    mejorDisposición.daño_acumulado = 0;
-    mejorDisposición.torres_colocadas = 0;
+    int** daños = obtener_posibles_daños(mapa);
 
-    for (int x = 0; x < mapa->ancho; x++) {
-        for (int y = 0; y < mapa->alto; y++) {
-            const OpcionBacktracking disp = maximizar_daño(mapa, daño, (Coordenada){x, y});
-            if (disp.torres_colocadas > mapa->cant_torres) continue;
+    ConfiguraciónBacktracking config;
+    config.daño_global = 0;
+    config.torres_colocadas = 0;
+    config.torres = malloc(sizeof(Coordenada) * mapa->cant_torres);
+    assert(config.torres);
 
-            if (disp.daño_acumulado > mejorDisposición.daño_acumulado) {
-                mejorDisposición = disp;
-            };
-        };
+    EstadoBacktracking comienzo;
+    comienzo.daño_actual = 0;
+    comienzo.torres_colocadas = 0;
+    comienzo.torres = malloc(sizeof(Coordenada) * mapa->cant_torres);
+    assert(comienzo.torres);
+
+    buscar_proxima_torre(&config, mapa, daños, &comienzo, 0);
+
+    free(comienzo.torres);
+
+    FILE* f = fopen("debug.log", "w");
+    for (size_t i = 0; i < config.torres_colocadas; i++) {
+        fprintf(f, "(%d, %d)\n", config.torres[i].x, config.torres[i].y);
+        colocar_torre(mapa, config.torres[i].x, config.torres[i].y, i);
     };
+    fclose(f);
+
+    free(config.torres);
 
     for (size_t i = 0; i < mapa->ancho; i++) {
-        free(daño[i]);
+        free(daños[i]);
     };
 
-    free(daño);
+    free(daños);
 };
 
 static int mejor_torre(const void* lhs, const void* rhs) {

@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 #include "mapa.h"
@@ -17,12 +18,17 @@ typedef struct InfoPropagación {
     int distancia;
 } InfoPropagación;
 
-typedef struct OpcionBacktracking {
-    int daño_acumulado;
-    int torres_colocadas;
-    Coordenada comienzo_busqueda;
-    Coordenada posicion;
-} OpcionBacktracking;
+typedef struct EstadoBacktracking {
+    unsigned int daño_actual;
+    size_t torres_colocadas;
+    Coordenada* torres;
+} EstadoBacktracking;
+
+typedef struct ConfiguraciónBacktracking {
+    unsigned int daño_global;
+    size_t torres_colocadas;
+    Coordenada* torres;
+} ConfiguraciónBacktracking;
 
 typedef struct PosibleTorre {
     Coordenada posicion;
