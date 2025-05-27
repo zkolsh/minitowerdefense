@@ -52,57 +52,17 @@ static int** obtener_posibles_daños(Mapa* mapa) {
             daños[nodo->posicion.x][nodo->posicion.y] = -1;
         };
 
-        struct info_vecino* izq = malloc(sizeof(struct info_vecino));
-        *izq = *nodo;
-        izq->distancia++;
-        izq->posicion.x--;
-        cola_encolar(vecinos, izq);
+        const int deltaX[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+        const int deltaY[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
-        struct info_vecino* sup_izq = malloc(sizeof(struct info_vecino));
-        *sup_izq = *nodo;
-        sup_izq->distancia++;
-        sup_izq->posicion.x--;
-        sup_izq->posicion.y--;
-        cola_encolar(vecinos, sup_izq);
-
-        struct info_vecino* sup = malloc(sizeof(struct info_vecino));
-        *sup = *nodo;
-        sup->distancia++;
-        sup->posicion.y--;
-        cola_encolar(vecinos, sup);
-
-        struct info_vecino* sup_der = malloc(sizeof(struct info_vecino));
-        *sup_der = *nodo;
-        sup_der->distancia++;
-        sup_der->posicion.x++;
-        sup_der->posicion.y--;
-        cola_encolar(vecinos, sup_der);
-
-        struct info_vecino* der = malloc(sizeof(struct info_vecino));
-        *der = *nodo;
-        der->distancia++;
-        der->posicion.x++;
-        cola_encolar(vecinos, der);
-
-        struct info_vecino* inf_der = malloc(sizeof(struct info_vecino));
-        *inf_der = *nodo;
-        inf_der->distancia++;
-        inf_der->posicion.x++;
-        inf_der->posicion.y++;
-        cola_encolar(vecinos, inf_der);
-
-        struct info_vecino* inf = malloc(sizeof(struct info_vecino));
-        *inf = *nodo;
-        inf->distancia++;
-        inf->posicion.y++;
-        cola_encolar(vecinos, inf);
-
-        struct info_vecino* inf_izq = malloc(sizeof(struct info_vecino));
-        *inf_izq = *nodo;
-        inf_izq->distancia++;
-        inf_izq->posicion.x--;
-        inf_izq->posicion.y++;
-        cola_encolar(vecinos, inf_izq);
+        for (size_t i = 0; i < 8; i++) {
+            struct info_vecino* vecino = malloc(sizeof(struct info_vecino));
+            *vecino = *nodo;
+            vecino->distancia++;
+            vecino->posicion.x += deltaX[i];
+            vecino->posicion.y += deltaY[i];
+            cola_encolar(vecinos, vecino);
+        };
 
         free(nodo);
     };
