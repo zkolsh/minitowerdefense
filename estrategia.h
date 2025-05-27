@@ -10,7 +10,6 @@
 #include "mapa.h"
 #include "nivel.h"
 #include "pila.h"
-#include "cola.h"
 
 typedef struct InfoPropagación {
     Coordenada origen;
