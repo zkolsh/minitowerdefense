@@ -1,73 +1,53 @@
 #include "estrategia.h"
 
-static int** obtener_posibles_daños(Mapa* mapa) {
-    int** daños = malloc(sizeof(int*) * mapa->ancho);
-    for (size_t i = 0; i < mapa->ancho; i++) {
+int alcance_torre(const Mapa* mapa, const Coordenada origen) {
 
-        daños[i] = malloc(mapa->alto * sizeof(int));
-        for (size_t j = 0; j < mapa->alto; j++) {
-            daños[i][j] = 0;
+    int alcance = 0;
+    const int radio = mapa->distancia_ataque;
+
+    for (int deltaX = -radio; deltaX <= radio; deltaX++) {
+        for (int deltaY = -radio; deltaY <= radio; deltaY++) {
+            const Coordenada nodo = {origen.x + deltaX, origen.y + deltaY};
+
+            if (nodo.x < 0 || nodo.x >= mapa->ancho || nodo.y < 0 || nodo.y >= mapa->alto) {
+                continue;
+            };
+
+            if (mapa->casillas[nodo.x][nodo.y] == CAMINO) {
+                alcance++;
+            };
         };
     };
 
-    Cola* vecinos = cola_nueva();
-    struct info_vecino {
-        unsigned int codigo;
-        Coordenada posicion;
-        int distancia;
+    return alcance;
+};
+
+static int** obtener_posibles_daños(const Mapa* mapa) {
+    int** daños = malloc(sizeof(int*) * mapa->ancho);
+    if (!daños) return NULL;
+
+    for (size_t i = 0; i < mapa->ancho; i++) {
+        daños[i] = malloc(mapa->alto * sizeof(int));
+
+        if (!daños[i]) {
+            for (size_t j = 0; j < i; j++) free(daños[j]);
+            free(daños);
+            return NULL;
+        };
+
+        for (size_t j = 0; j < mapa->alto; j++) {
+            daños[i][j] = 0;
+        };
     };
 
     for (size_t x = 0; x < mapa->ancho; x++) {
         for (size_t y = 0; y < mapa->alto; y++) {
             if (mapa->casillas[x][y] != VACIO) continue;
 
-            struct info_vecino* nodo = malloc(sizeof(struct info_vecino));
-            nodo->codigo = y * mapa->ancho + x;
-            nodo->posicion.x = x;
-            nodo->posicion.y = y;
-            nodo->distancia = 0;
-            cola_encolar(vecinos, nodo);
+            daños[x][y] = alcance_torre(mapa, (Coordenada){x, y});
         };
     };
 
-    while (!cola_esta_vacia(vecinos)) {
-        struct info_vecino* nodo = cola_frente(vecinos);
-        cola_desencolar(vecinos);
-
-        if (nodo->posicion.x < 0 || nodo->posicion.x >= mapa->ancho
-         || nodo->posicion.y < 0 || nodo->posicion.y >= mapa->alto
-         || nodo->distancia > mapa->distancia_ataque
-         || daños[nodo->posicion.x][nodo->posicion.y] == -1
-        ) {
-             free(nodo);
-             continue;
-        };
-
-        Coordenada origen;
-        origen.x = nodo->codigo % mapa->ancho;
-        origen.y = (nodo->codigo - origen.x) / mapa->ancho;
-
-        if (nodo->distancia != 0) {
-            daños[origen.x][origen.y]++;
-            daños[nodo->posicion.x][nodo->posicion.y] = -1;
-        };
-
-        const int deltaX[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
-        const int deltaY[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-
-        for (size_t i = 0; i < 8; i++) {
-            struct info_vecino* vecino = malloc(sizeof(struct info_vecino));
-            *vecino = *nodo;
-            vecino->distancia++;
-            vecino->posicion.x += deltaX[i];
-            vecino->posicion.y += deltaY[i];
-            cola_encolar(vecinos, vecino);
-        };
-
-        free(nodo);
-    };
-
-    cola_destruir(vecinos, free);
     return daños;
 };
 

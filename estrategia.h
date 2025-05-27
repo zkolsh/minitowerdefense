@@ -11,6 +11,12 @@
 #include "pila.h"
 #include "cola.h"
 
+typedef struct InfoPropagación {
+    Coordenada origen;
+    Coordenada posicion;
+    int distancia;
+} InfoPropagación;
+
 typedef struct OpcionBacktracking {
     int daño_acumulado;
     int torres_colocadas;
