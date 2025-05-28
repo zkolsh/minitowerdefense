@@ -148,12 +148,9 @@ void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
 
     free(comienzo.torres);
 
-    FILE* f = fopen("debug.log", "w");
     for (size_t i = 0; i < config.torres_colocadas; i++) {
-        fprintf(f, "(%d, %d)\n", config.torres[i].x, config.torres[i].y);
         colocar_torre(mapa, config.torres[i].x, config.torres[i].y, i);
     };
-    fclose(f);
 
     free(config.torres);
     free(posibles_torres);
@@ -164,28 +161,13 @@ static int mejor_torre(const void* lhs, const void* rhs) {
 };
 
 void disponer_custom(Nivel* nivel, Mapa* mapa) {
-    assert(nivel);
     assert(mapa);
 
     size_t cantidad_torres_potenciales = 0;
     PosibleTorre* posibles_torres = obtener_posibles_daños(mapa, &cantidad_torres_potenciales);
     assert(posibles_torres);
 
-    FILE* f = fopen("debug.log", "w");
-
-    for (size_t i = 0; i < cantidad_torres_potenciales; i++) {
-        fprintf(f, "(%d, %d, %d)\n", posibles_torres[i].posicion.x, posibles_torres[i].posicion.y, posibles_torres[i].impacto);
-    };
-
-    fprintf(f, "------------------\n");
-
     qsort(posibles_torres, cantidad_torres_potenciales, sizeof(PosibleTorre), mejor_torre);
-
-    for (size_t i = 0; i < cantidad_torres_potenciales; i++) {
-        fprintf(f, "(%d, %d, %d)\n", posibles_torres[i].posicion.x, posibles_torres[i].posicion.y, posibles_torres[i].impacto);
-    };
-
-    fclose(f);
 
     const size_t torres_a_colocar = (mapa->cant_torres < cantidad_torres_potenciales)? mapa->cant_torres : cantidad_torres_potenciales;
     for (size_t i = 0; i < torres_a_colocar; i++) {
