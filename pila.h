@@ -5,34 +5,34 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifndef STACK_INITIAL_CAPACITY
-#define STACK_INITIAL_CAPACITY 2
-#endif //STACK_CAPACITY
+#ifndef PILA_CAPACIDAD_INICIAL
+#define PILA_CAPACIDAD_INICIAL 2
+#endif //PILA_CAPACIDAD_INICIAL
 
-#ifndef STACK_EXPOSE_INTERNALS
+#ifndef PILA_VISIBILIDAD_INTERNA
 typedef struct Pila Pila;
 #else
 typedef struct Pila {
-    size_t last;
-    size_t capacity;
-    void** data;
+    size_t ultimo;
+    size_t capacidad;
+    void** datos;
 } Pila;
-#endif //STACK_EXPOSE_INTERNALS
+#endif //PILA_VISIBILIDAD_INTERNA
 
-// Accepts a pointer to an element, and returns the new
-typedef void* (*Transformer)(void* x);
+// Toma un puntero a un elemento y devuelve un puntero al elemento transformado.
+typedef void* (*Transformador)(void* x);
 
-// Function that destroys the given parameter
+// Función que destruye el parámetro dado.
 typedef void (*Destructor)(void* x);
 
 Pila* pila_nueva();
 bool pila_esta_vacia(Pila* input);
 size_t pila_tamaño(Pila* input);
-void* pila_tope(Pila* input); // Returns the top element from the stack, but does not pop it.
-void pila_realloc(Pila* stack, size_t new_capacity);
-void pila_apilar(Pila* stack, void* data); // Append a new element to the stack.
-void pila_desapilar(Pila* input); // Pops the top element off the stack, but does not return it.
-void pila_foreach(Pila* input, Transformer function); // Apply a function to each element on the stack.
-void pila_liberar(Pila* input); // Destroy the stack without freeing any of its members.
-void pila_destruir(Pila* input, Destructor destroy); // Destroy the stack and every element it contains.
+void* pila_tope(Pila* input); // Devuelve el último elemento del stack, sin desapilarlo.
+void pila_realloc(Pila* pila, size_t nueva_capacidad);
+void pila_apilar(Pila* pila, void* dato); // Apilar el próximo elemento.
+void pila_desapilar(Pila* input); // Desapila el último elemento pero no lo devuelve ni lo destruye.
+void pila_foreach(Pila* input, Transformador funcion); // Aplica una función a cada elemento en la pila.
+void pila_liberar(Pila* input); // Destruye la pila sin destruir los elementos que contiene.
+void pila_destruir(Pila* input, Destructor destruir); // Destruye la pila y todos los elementos que contiene.
 

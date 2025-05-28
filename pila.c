@@ -1,91 +1,87 @@
-#ifdef STACK_IMPLEMENTATION
-#undef STACK_IMPLEMENTATION
-#endif //STACK_IMPLEMENTATION
-
-#define STACK_EXPOSE_INTERNALS
+#define PILA_VISIBILIDAD_INTERNA
 #include "pila.h"
 
 Pila* pila_nueva() {
-    Pila* stack = malloc(sizeof(Pila));
-    stack->last = 0;
-    stack->capacity = STACK_INITIAL_CAPACITY;
-    stack->data = (void**)malloc(sizeof(void*) * STACK_INITIAL_CAPACITY);
-    return stack;
+    Pila* pila = malloc(sizeof(Pila));
+    assert(pila);
+    pila->ultimo = 0;
+    pila->capacidad = PILA_CAPACIDAD_INICIAL;
+    pila->datos = (void**)malloc(sizeof(void*) * PILA_CAPACIDAD_INICIAL);
+    return pila;
 };
 
 bool pila_esta_vacia(Pila* input) {
     assert(input);
-    return input->last == 0;
+    return input->ultimo == 0;
 };
 
 size_t pila_tamaño(Pila* input) {
     assert(input);
-    return input->last;
+    return input->ultimo;
 };
 
 void* pila_tope(Pila* input) {
     assert(input);
-    if (input->last == 0) {
-        perror("ERROR: Stack was empty.\n");
+    if (input->ultimo == 0) {
+        perror("ERROR: La pila estaba vacía.\n");
         exit(EXIT_FAILURE);
     };
 
-    return input->data[input->last - 1];
+    return input->datos[input->ultimo - 1];
 };
 
-void pila_realloc(Pila* stack, size_t new_capacity) {
-    assert(new_capacity >= 0);
-    if (new_capacity == 0) new_capacity = STACK_INITIAL_CAPACITY;
+void pila_realloc(Pila* pila, size_t nueva_capacidad) {
+    assert(nueva_capacidad >= 0);
 
-    void** new_data = (void**)realloc((void*)stack->data, new_capacity * sizeof(*new_data));
-    if (new_data == NULL) {
-        pila_liberar(stack);
-        perror("ERROR: Out of memory.\n");
+    void** nuevos_datos = (void**)realloc((void*)pila->datos, nueva_capacidad * sizeof(*nuevos_datos));
+    if (nuevos_datos == NULL) {
+        pila_liberar(pila);
+        perror("ERROR: No queda más memoria en el sistema.\n");
         exit(EXIT_FAILURE);
     };
 
-    stack->capacity = new_capacity;
-    stack->data = new_data;
+    pila->capacidad = nueva_capacidad;
+    pila->datos = nuevos_datos;
 };
 
-void pila_apilar(Pila* stack, void* data) {
-    assert(stack);
-    if (stack->last >= stack->capacity) {
-        pila_realloc(stack, 2 * stack->capacity);
+void pila_apilar(Pila* pila, void* dato) {
+    assert(pila);
+    if (pila->ultimo >= pila->capacidad) {
+        pila_realloc(pila, 2 * pila->capacidad);
     };
 
-    stack->data[stack->last++] = data;
+    pila->datos[pila->ultimo++] = dato;
 };
 
 void pila_desapilar(Pila* input) {
     assert(input);
-    if (input->last <= 0) {
-        perror("ERROR: Stack undeflow.\n");
+    if (input->ultimo <= 0) {
+        perror("ERROR: Subrebalsado de pila.\n");
         exit(EXIT_FAILURE);
     };
 
-    input->last--;
+    input->ultimo--;
 };
 
-void pila_foreach(Pila* input, Transformer function) {
+void pila_foreach(Pila* input, Transformador funcion) {
     assert(input);
-    for (size_t i = 0; i < input->last; i++) {
-        input->data[i] = function(input->data[i]);
+    for (size_t i = 0; i < input->ultimo; i++) {
+        input->datos[i] = funcion(input->datos[i]);
     };
 };
 
 void pila_liberar(Pila* input) {
     if (input == NULL) return;
 
-    free((void*)input->data);
+    free((void*)input->datos);
     free(input);
 };
 
-void pila_destruir(Pila* input, Destructor destroy) {
+void pila_destruir(Pila* input, Destructor destruir) {
     if (input == NULL) return;
 
-    for (size_t i = 0; i < input->last; i++) {
-        destroy(input->data[i]);
+    for (size_t i = 0; i < input->ultimo; i++) {
+        destruir(input->datos[i]);
     };
 
     pila_liberar(input);
