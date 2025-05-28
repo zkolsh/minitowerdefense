@@ -1,7 +1,6 @@
 #include "estrategia.h"
 
-int alcance_torre(const Mapa* mapa, const Coordenada origen) {
-
+static int alcance_torre(const Mapa* mapa, const Coordenada origen) {
     int alcance = 0;
     const int radio = mapa->distancia_ataque;
 
@@ -22,33 +21,31 @@ int alcance_torre(const Mapa* mapa, const Coordenada origen) {
     return alcance;
 };
 
-static int** obtener_posibles_daños(const Mapa* mapa) {
-    int** daños = malloc(sizeof(int*) * mapa->ancho);
-    if (!daños) return NULL;
-
-    for (size_t i = 0; i < mapa->ancho; i++) {
-        daños[i] = malloc(mapa->alto * sizeof(int));
-
-        if (!daños[i]) {
-            for (size_t j = 0; j < i; j++) free(daños[j]);
-            free(daños);
-            return NULL;
-        };
-
-        for (size_t j = 0; j < mapa->alto; j++) {
-            daños[i][j] = 0;
-        };
-    };
+static PosibleTorre* obtener_posibles_daños(const Mapa* mapa, size_t* cantidad_torres_potenciales) {
+    *cantidad_torres_potenciales = 0;
 
     for (size_t x = 0; x < mapa->ancho; x++) {
         for (size_t y = 0; y < mapa->alto; y++) {
             if (mapa->casillas[x][y] != VACIO) continue;
-
-            daños[x][y] = alcance_torre(mapa, (Coordenada){x, y});
+            (*cantidad_torres_potenciales)++;
         };
     };
 
-    return daños;
+    PosibleTorre* torres = malloc(*cantidad_torres_potenciales * sizeof(PosibleTorre));
+    assert(torres);
+
+    size_t indice_torre = 0;
+    for (size_t x = 0; x < mapa->ancho; x++) {
+        for (size_t y = 0; y < mapa->alto; y++) {
+            if (mapa->casillas[x][y] != VACIO) continue;
+            torres[indice_torre].posicion.x = x;
+            torres[indice_torre].posicion.y = y;
+            torres[indice_torre].impacto = alcance_torre(mapa, (Coordenada){x, y});
+            indice_torre++;
+        };
+    };
+
+    return torres;
 };
 
 static int posiciones_validas(Coordenada *validas, TipoCasilla **casillas, int alto, int ancho) {
@@ -101,7 +98,7 @@ void disponer(Nivel* nivel, Mapa* mapa) {
     };
 };
 
-static void buscar_proxima_torre(ConfiguraciónBacktracking* config, const Mapa* mapa, int** daños, EstadoBacktracking* estado, size_t indice_comienzo) {
+static void buscar_proxima_torre(ConfiguraciónBacktracking* config, const Mapa* mapa, PosibleTorre* posibles_torres, size_t cantidad_torres_potenciales, EstadoBacktracking* estado, size_t indice_comienzo) {
     if (estado->torres_colocadas >= mapa->cant_torres) {
         if (estado->daño_actual > config->daño_global) {
             // Nueva mejor disposición; guardar.
@@ -113,26 +110,27 @@ static void buscar_proxima_torre(ConfiguraciónBacktracking* config, const Mapa*
         return;
     };
 
-    for (size_t i = indice_comienzo; i < mapa->ancho * mapa->alto; i++) {
-        const size_t x = i % mapa->ancho;
-        const size_t y = i / mapa->ancho;
+    for (size_t i = indice_comienzo; i < cantidad_torres_potenciales; i++) {
+        const size_t x = posibles_torres[i].posicion.x;
+        const size_t y = posibles_torres[i].posicion.y;
 
         if (mapa->casillas[x][y] != VACIO) continue;
 
         // colocar torre
         estado->torres[estado->torres_colocadas++] = (Coordenada){x, y};
-        estado->daño_actual += daños[x][y];
+        estado->daño_actual += posibles_torres[i].impacto;
 
-        buscar_proxima_torre(config, mapa, daños, estado, i + 1);
+        buscar_proxima_torre(config, mapa, posibles_torres, cantidad_torres_potenciales, estado, i + 1);
 
         // descolocar torre
         estado->torres_colocadas--;
-        estado->daño_actual -= daños[x][y];
+        estado->daño_actual -= posibles_torres[i].impacto;
     };
 };
 
 void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
-    int** daños = obtener_posibles_daños(mapa);
+    size_t cantidad_torres_potenciales = 0;
+    PosibleTorre* posibles_torres = obtener_posibles_daños(mapa, &cantidad_torres_potenciales);
 
     ConfiguraciónBacktracking config;
     config.daño_global = 0;
@@ -146,7 +144,7 @@ void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
     comienzo.torres = malloc(sizeof(Coordenada) * mapa->cant_torres);
     assert(comienzo.torres);
 
-    buscar_proxima_torre(&config, mapa, daños, &comienzo, 0);
+    buscar_proxima_torre(&config, mapa, posibles_torres, cantidad_torres_potenciales, &comienzo, 0);
 
     free(comienzo.torres);
 
@@ -158,12 +156,7 @@ void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
     fclose(f);
 
     free(config.torres);
-
-    for (size_t i = 0; i < mapa->ancho; i++) {
-        free(daños[i]);
-    };
-
-    free(daños);
+    free(posibles_torres);
 };
 
 static int mejor_torre(const void* lhs, const void* rhs) {
@@ -173,35 +166,10 @@ static int mejor_torre(const void* lhs, const void* rhs) {
 void disponer_custom(Nivel* nivel, Mapa* mapa) {
     assert(nivel);
     assert(mapa);
-    int** daño = obtener_posibles_daños(mapa);
-    assert(daño);
 
     size_t cantidad_torres_potenciales = 0;
-    for (size_t x = 0; x < mapa->ancho; x++) {
-        for (size_t y = 0; y < mapa->alto; y++) {
-            if (mapa->casillas[x][y] == VACIO) cantidad_torres_potenciales++;
-        };
-    };
-
-    PosibleTorre* posibles_torres = malloc(sizeof(PosibleTorre) * cantidad_torres_potenciales);
+    PosibleTorre* posibles_torres = obtener_posibles_daños(mapa, &cantidad_torres_potenciales);
     assert(posibles_torres);
-    size_t indice_torre = 0;
-    for (size_t x = 0; x < mapa->ancho; x++) {
-        for (size_t y = 0; y < mapa->alto; y++) {
-            if (mapa->casillas[x][y] != VACIO) continue;
-
-            posibles_torres[indice_torre].posicion.x = x;
-            posibles_torres[indice_torre].posicion.y = y;
-            posibles_torres[indice_torre].impacto = daño[x][y];
-            indice_torre++;
-        };
-    };
-
-    for (size_t i = 0; i < mapa->ancho; i++) {
-        free(daño[i]);
-    };
-
-    free(daño);
 
     FILE* f = fopen("debug.log", "w");
 
