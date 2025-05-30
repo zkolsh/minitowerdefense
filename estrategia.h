@@ -11,24 +11,6 @@
 #include "nivel.h"
 #include "pila.h"
 
-typedef struct InfoPropagación {
-    Coordenada origen;
-    Coordenada posicion;
-    int distancia;
-} InfoPropagación;
-
-typedef struct EstadoBacktracking {
-    unsigned int daño_actual;
-    size_t torres_colocadas;
-    Coordenada* torres;
-} EstadoBacktracking;
-
-typedef struct ConfiguraciónBacktracking {
-    unsigned int daño_global;
-    size_t torres_colocadas;
-    Coordenada* torres;
-} ConfiguraciónBacktracking;
-
 typedef struct PosibleTorre {
     Coordenada posicion;
     int impacto;

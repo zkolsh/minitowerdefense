@@ -98,61 +98,107 @@ void disponer(Nivel* nivel, Mapa* mapa) {
     };
 };
 
-static void buscar_proxima_torre(ConfiguraciónBacktracking* config, const Mapa* mapa, PosibleTorre* posibles_torres, size_t cantidad_torres_potenciales, EstadoBacktracking* estado, size_t indice_comienzo) {
-    if (estado->torres_colocadas >= mapa->cant_torres) {
-        if (estado->daño_actual > config->daño_global) {
-            // Nueva mejor disposición; guardar.
-            memcpy(config->torres, estado->torres, sizeof(Coordenada) * estado->torres_colocadas);
-            config->daño_global = estado->daño_actual;
-            config->torres_colocadas = estado->torres_colocadas;
-        };
-
-        return;
-    };
-
-    for (size_t i = indice_comienzo; i < cantidad_torres_potenciales; i++) {
-        const size_t x = posibles_torres[i].posicion.x;
-        const size_t y = posibles_torres[i].posicion.y;
-
-        if (mapa->casillas[x][y] != VACIO) continue;
-
-        // colocar torre
-        estado->torres[estado->torres_colocadas++] = (Coordenada){x, y};
-        estado->daño_actual += posibles_torres[i].impacto;
-
-        buscar_proxima_torre(config, mapa, posibles_torres, cantidad_torres_potenciales, estado, i + 1);
-
-        // descolocar torre
-        estado->torres_colocadas--;
-        estado->daño_actual -= posibles_torres[i].impacto;
-    };
-};
-
 void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
     size_t cantidad_torres_potenciales = 0;
     PosibleTorre* posibles_torres = obtener_posibles_daños(mapa, &cantidad_torres_potenciales);
 
-    ConfiguraciónBacktracking config;
-    config.daño_global = 0;
-    config.torres_colocadas = 0;
-    config.torres = malloc(sizeof(Coordenada) * mapa->cant_torres);
-    assert(config.torres);
-
-    EstadoBacktracking comienzo;
-    comienzo.daño_actual = 0;
-    comienzo.torres_colocadas = 0;
-    comienzo.torres = malloc(sizeof(Coordenada) * mapa->cant_torres);
-    assert(comienzo.torres);
-
-    buscar_proxima_torre(&config, mapa, posibles_torres, cantidad_torres_potenciales, &comienzo, 0);
-
-    free(comienzo.torres);
-
-    for (size_t i = 0; i < config.torres_colocadas; i++) {
-        colocar_torre(mapa, config.torres[i].x, config.torres[i].y, i);
+    if (!cantidad_torres_potenciales) {
+        free(posibles_torres);
+        return;
     };
 
-    free(config.torres);
+    size_t mejor_daño = 0;
+    PosibleTorre* mejor_configuración = malloc(sizeof(PosibleTorre) * mapa->cant_torres);
+    assert(mejor_configuración);
+
+    // NOTE: Array indexado en 1!
+    size_t* posibles_daños = malloc(sizeof(size_t) * (cantidad_torres_potenciales + 1));
+    assert(posibles_daños);
+
+    posibles_daños[0] = 0;
+    for (size_t i = 0; i < cantidad_torres_potenciales; i++) {
+        posibles_daños[i + 1] = posibles_daños[i] + posibles_torres[i].impacto;
+    };
+
+    PosibleTorre* configuración_actual = malloc(sizeof(PosibleTorre) * mapa->cant_torres);
+    assert(configuración_actual);
+
+    typedef struct TramaBacktracking {
+        size_t torres_colocadas;
+        size_t daño_actual;
+        size_t indice_comienzo;
+    } TramaBacktracking;
+
+    Pila* pasos = pila_nueva();
+    assert(pasos);
+
+    TramaBacktracking* comienzo = malloc(sizeof(TramaBacktracking));
+    assert(comienzo);
+    comienzo->torres_colocadas = 0;
+    comienzo->daño_actual = 0;
+    comienzo->indice_comienzo = 0;
+    pila_apilar(pasos, comienzo);
+
+    while (!pila_esta_vacia(pasos)) {
+        TramaBacktracking* estado = pila_tope(pasos);
+
+        // heurística:
+        const size_t posible_daño_restante = posibles_daños[cantidad_torres_potenciales]
+                - posibles_daños[estado->indice_comienzo];
+
+        if (estado->daño_actual + posible_daño_restante <= mejor_daño) {
+            // este camino no llevará a ninguna estrategia mejor
+            free(estado);
+            pila_desapilar(pasos);
+            continue;
+        };
+
+        // caso base:
+        if (estado->torres_colocadas >= mapa->cant_torres) {
+            if (estado->daño_actual > mejor_daño) {
+                mejor_daño = estado->daño_actual;
+                memcpy(mejor_configuración, configuración_actual, estado->torres_colocadas * sizeof(PosibleTorre));
+            };
+
+            free(estado);
+            pila_desapilar(pasos);
+            continue;
+        };
+
+        // caso recursivo:
+        if (estado->indice_comienzo >= cantidad_torres_potenciales) {
+            // descolocar torre, backtrack
+            free(estado);
+            pila_desapilar(pasos);
+            continue;
+        };
+
+        const size_t indice_actual = estado->indice_comienzo;
+        estado->indice_comienzo++; // La proxima vez que volvamos a este paso, vamos a considerar la proxima torre.
+
+        // Dar un paso hacia adelante.
+        TramaBacktracking* proximo = malloc(sizeof(TramaBacktracking));
+        assert(proximo);
+        proximo->torres_colocadas = estado->torres_colocadas + 1;
+        proximo->daño_actual = estado->daño_actual + posibles_torres[indice_actual].impacto;
+        proximo->indice_comienzo = indice_actual + 1;
+        pila_apilar(pasos, proximo);
+
+        configuración_actual[proximo->torres_colocadas - 1] = posibles_torres[indice_actual];
+    };
+
+    pila_destruir(pasos, free);
+
+    FILE* f = fopen("debug.log", "w");
+    for (size_t i = 0; i < mapa->cant_torres; i++) {
+        fprintf(f, "(%d, %d)\n", mejor_configuración[i].posicion.x, mejor_configuración[i].posicion.y);
+        colocar_torre(mapa, mejor_configuración[i].posicion.x, mejor_configuración[i].posicion.y, i);
+    };
+    fclose(f);
+
+    free(mejor_configuración);
+    free(configuración_actual);
+    free(posibles_daños);
     free(posibles_torres);
 };
 
