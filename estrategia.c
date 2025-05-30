@@ -190,12 +190,9 @@ void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
 
     pila_destruir(pasos, free);
 
-    FILE* f = fopen("debug.log", "w");
     for (size_t i = 0; i < mapa->cant_torres; i++) {
-        fprintf(f, "(%d, %d)\n", mejor_configuración[i].posicion.x, mejor_configuración[i].posicion.y);
         colocar_torre(mapa, mejor_configuración[i].posicion.x, mejor_configuración[i].posicion.y, i);
     };
-    fclose(f);
 
     free(mejor_configuración);
     free(configuración_actual);
