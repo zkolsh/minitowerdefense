@@ -8,7 +8,7 @@ static int alcance_torre(const Mapa* mapa, const Coordenada origen) {
         for (int deltaY = -radio; deltaY <= radio; deltaY++) {
             const Coordenada nodo = {origen.x + deltaX, origen.y + deltaY};
 
-            if (nodo.x < 0 || nodo.x >= mapa->ancho || nodo.y < 0 || nodo.y >= mapa->alto) {
+            if (nodo.x < 0 || nodo.x >= mapa->alto || nodo.y < 0 || nodo.y >= mapa->ancho) {
                 continue;
             };
 
@@ -24,8 +24,8 @@ static int alcance_torre(const Mapa* mapa, const Coordenada origen) {
 static PosibleTorre* obtener_posibles_daños(const Mapa* mapa, size_t* cantidad_torres_potenciales) {
     *cantidad_torres_potenciales = 0;
 
-    for (size_t x = 0; x < mapa->ancho; x++) {
-        for (size_t y = 0; y < mapa->alto; y++) {
+    for (size_t x = 0; x < mapa->alto; x++) {
+        for (size_t y = 0; y < mapa->ancho; y++) {
             if (mapa->casillas[x][y] != VACIO) continue;
             (*cantidad_torres_potenciales)++;
         };
@@ -35,8 +35,8 @@ static PosibleTorre* obtener_posibles_daños(const Mapa* mapa, size_t* cantidad_
     assert(torres);
 
     size_t indice_torre = 0;
-    for (size_t x = 0; x < mapa->ancho; x++) {
-        for (size_t y = 0; y < mapa->alto; y++) {
+    for (size_t x = 0; x < mapa->alto; x++) {
+        for (size_t y = 0; y < mapa->ancho; y++) {
             if (mapa->casillas[x][y] != VACIO) continue;
             torres[indice_torre].posicion.x = x;
             torres[indice_torre].posicion.y = y;
@@ -143,7 +143,8 @@ void disponer_con_backtracking(Nivel* nivel, Mapa* mapa) {
         TramaBacktracking* estado = pila_tope(pasos);
 
         // heurística:
-        const size_t posible_daño_restante = posibles_daños[cantidad_torres_potenciales]
+        const size_t posible_daño_restante
+                = posibles_daños[cantidad_torres_potenciales]
                 - posibles_daños[estado->indice_comienzo];
 
         if (estado->daño_actual + posible_daño_restante <= mejor_daño) {
